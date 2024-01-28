@@ -38,14 +38,14 @@ export function Header() {
       </Fade>
       <Box display={'flex'} gap={3}>
         {scrollPosition > 500 && (
-          <JackInTheBox>
+          <JackInTheBox className={styles['icon']}>
             <ThemedIcon icon={IoMdMail} link="mailto:est.estrada@outlook.com" />
           </JackInTheBox>
         )}
         {scrollPosition < 500 && (
           <Fragment>
             <JackInTheBox>
-              <ThemedIcon icon={FaTiktok} link="https://tittok.com" />
+              <ThemedIcon icon={FaTiktok} link="https://www.tiktok.com/@esteban1x" />
             </JackInTheBox>
             <JackInTheBox>
               <ThemedIcon icon={FaGithub} link="https://github.com/Codestz" />
