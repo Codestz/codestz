@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
-import { JackInTheBox } from 'react-awesome-reveal';
+import { Fade, JackInTheBox } from 'react-awesome-reveal';
 import { FaGithub, FaTiktok } from 'react-icons/fa';
 import { IoMdMail } from 'react-icons/io';
 import { ThemedIcon } from '../ThemedIcon/ThemedIcon';
@@ -21,19 +21,21 @@ export function Header() {
 
   return (
     <Box className={styles['container']} p={3}>
-      <Box display={'flex'} gap={1}>
-        <Typography variant="h1">Esteban</Typography>
-        <Typography
-          variant="h1"
-          color={'primary'}
-          sx={{
-            transition: 'all 0.3s ease-in-out',
-            color: scrollPosition > 500 ? '#ffffff48' : 'primary.main',
-          }}
-        >
-          Codestz
-        </Typography>
-      </Box>
+      <Fade>
+        <Box display={'flex'} gap={1}>
+          <Typography variant="h1">Esteban</Typography>
+          <Typography
+            variant="h1"
+            color={'primary'}
+            sx={{
+              transition: 'all 0.3s ease-in-out',
+              color: scrollPosition > 500 ? '#ffffff48' : 'primary.main',
+            }}
+          >
+            Codestz
+          </Typography>
+        </Box>
+      </Fade>
       <Box display={'flex'} gap={3}>
         {scrollPosition > 500 && (
           <JackInTheBox>

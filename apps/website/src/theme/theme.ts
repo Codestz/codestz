@@ -68,7 +68,7 @@ export const theme = responsiveFontSizes(
       },
       body1: {
         fontSize: '1.125rem',
-        fontWeight: 600,
+        fontWeight: 400,
         lineHeight: 1.45,
         letterSpacing: '0.0075em',
       },
