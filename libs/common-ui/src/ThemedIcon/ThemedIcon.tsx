@@ -1,7 +1,7 @@
-import { ThemedIconProps } from './ThemedIcon.types';
 import { Box, useTheme } from '@mui/material';
-import styles from './ThemeIcon.module.scss';
 import cn from 'classnames';
+import { ThemedIconProps } from './ThemedIcon.types';
+import styles from './ThemeIcon.module.scss';
 
 export function ThemedIcon({
   icon,
