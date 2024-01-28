@@ -1,13 +1,13 @@
-import { StrictMode } from 'react';
-import * as ReactDOM from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router-dom';
+import MainRouter from './routing/MainRouter';
+import { ThemeProvider } from '@emotion/react';
+import { theme } from './theme/theme';
+import './i18n';
+import './styles.scss';
 
-import App from './app/app';
-
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
-root.render(
-  <StrictMode>
-    <App />
-  </StrictMode>
+createRoot(document.getElementById('root') as HTMLElement).render(
+  <ThemeProvider theme={theme}>
+    <RouterProvider router={MainRouter()} />
+  </ThemeProvider>,
 );

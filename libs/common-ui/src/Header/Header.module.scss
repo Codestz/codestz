@@ -1,0 +1,8 @@
+.container {
+  width: calc(100% - var(--xxlarge-space));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+}

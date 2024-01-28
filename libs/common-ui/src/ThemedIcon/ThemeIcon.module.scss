@@ -1,0 +1,8 @@
+.container {
+  transition: transform 0.2s ease-in-out;
+  &.animated {
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+}

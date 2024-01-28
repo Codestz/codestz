@@ -1,7 +1,7 @@
 {
   "root": true,
   "ignorePatterns": ["**/*"],
-  "plugins": ["@nx"],
+  "plugins": ["@nx", "unused-imports", "import"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
@@ -24,7 +24,60 @@
     {
       "files": ["*.ts", "*.tsx"],
       "extends": ["plugin:@nx/typescript"],
-      "rules": {}
+      "rules": {
+        "no-nested-ternary": "error",
+        "no-inline-comments": "error",
+        "no-duplicate-imports": "error",
+        "arrow-body-style": ["error", "as-needed"],
+        "no-use-before-define": "error",
+        "no-unused-vars": [
+          "warn",
+          {
+            "vars": "all",
+            "varsIgnorePattern": "^_",
+            "args": "after-used",
+            "argsIgnorePattern": "^_"
+          }
+        ],
+        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-vars": [
+          "warn",
+          {
+            "vars": "all",
+            "varsIgnorePattern": "^_",
+            "args": "after-used",
+            "argsIgnorePattern": "^_"
+          }
+        ],
+        "import/order": [
+          "error",
+          {
+            "groups": ["builtin", "external", "internal", "parent", "type"],
+            "pathGroups": [
+              {
+                "pattern": "@codestz/**",
+                "group": "internal"
+              },
+              {
+                "pattern": "{react,react-dom/**}",
+                "group": "external",
+                "position": "before"
+              }
+            ],
+            "pathGroupsExcludedImportTypes": ["react"],
+            "alphabetize": {
+              "order": "asc",
+              "caseInsensitive": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*types*.*"],
+      "rules": {
+        "no-unused-vars": "off"
+      }
     },
     {
       "files": ["*.js", "*.jsx"],
