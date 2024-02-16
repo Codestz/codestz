@@ -1,5 +1,8 @@
+import { useProjectsList } from '../../hooks';
 import HomeComponent from './HomeComponent';
 
 export function HomePresenter() {
-  return <HomeComponent />;
+  const { data } = useProjectsList();
+
+  return <HomeComponent projects={data} />;
 }

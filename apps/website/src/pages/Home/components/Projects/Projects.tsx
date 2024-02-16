@@ -1,25 +1,27 @@
 import { Grid } from '@mui/material';
 import { Slide } from 'react-awesome-reveal';
 import { ProjectCard } from '@codestz/common-ui';
-import UlaulaLeft from '../../../../assets/images/ulaula-1.png';
-import UlaulaRight from '../../../../assets/images/ulaula-2.png';
+import { IProjectEntity } from '@codestz/core';
 
-export function Projects() {
+export function Projects({ projects }: { projects?: Array<IProjectEntity> }) {
   return (
     <Grid container spacing={8}>
-      <Grid item xs={12}>
-        <Slide>
-          <ProjectCard
-            leftImage={UlaulaLeft}
-            primaryColor="#ffcddb"
-            secondaryColor="#fefefe"
-            rightImage={UlaulaRight}
-            name={'ulaula'}
-            index={1}
-            link="https://ulaula.co"
-          />
-        </Slide>
-      </Grid>
+      {projects?.map((project, i) => (
+        <Grid item xs={12} key={project.Id}>
+          <Slide direction={i % 2 === 0 ? 'left' : 'right'}>
+            <ProjectCard
+              leftImage={project?.LeftImage?.DownloadUrl || ''}
+              primaryColor="#ffcddb"
+              secondaryColor="#fefefe"
+              rightImage={project?.RightImage?.DownloadUrl || ''}
+              name={project.Name || ''}
+              index={i}
+              link={project.Link}
+              description={project.Description}
+            />
+          </Slide>
+        </Grid>
+      ))}
     </Grid>
   );
 }

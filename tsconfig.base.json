@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@codestz/common-ui": ["libs/common-ui/src/index.ts"]
+      "@codestz/common-ui": ["libs/common-ui/src/index.ts"],
+      "@codestz/core": ["libs/core/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

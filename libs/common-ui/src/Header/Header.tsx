@@ -44,10 +44,10 @@ export function Header() {
         )}
         {scrollPosition < 500 && (
           <Fragment>
-            <JackInTheBox>
+            <JackInTheBox className={styles['icon']}>
               <ThemedIcon icon={FaTiktok} link="https://www.tiktok.com/@esteban1x" />
             </JackInTheBox>
-            <JackInTheBox>
+            <JackInTheBox className={styles['icon']}>
               <ThemedIcon icon={FaGithub} link="https://github.com/Codestz" />
             </JackInTheBox>
           </Fragment>

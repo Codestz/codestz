@@ -6,3 +6,14 @@
   position: fixed;
   top: 0;
 }
+
+.icon {
+  &:hover {
+    svg {
+      transform: scale(1.1);
+    }
+  }
+  svg {
+    transition: transform 0.3s;
+  }
+}

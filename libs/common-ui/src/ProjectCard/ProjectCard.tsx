@@ -57,9 +57,7 @@ export function ProjectCard({
             <img src={rightImage} alt={`${name}_picture_right`} />
           </Box>
           <Box className={styles['information']} gap={3}>
-            <Typography variant="body1">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-            </Typography>
+            {description && <Typography variant="body1">{description}</Typography>}
             <a href={link} target="_blank" className={styles['link']} rel="noreferrer">
               <TranslatableText>seeWebsite</TranslatableText>
             </a>
