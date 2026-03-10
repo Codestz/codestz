@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="340" height="230" viewBox="0 0 340 230">
+  <text x="25" y="28" fill="#7c3aed" font-size="16" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Codestz's GitHub Stats</text>
+  
+    <g transform="translate(25, 48)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 .587l3.668 7.568L24 9.306l-6 5.862 1.416 8.245L12 19.446l-7.416 3.967L6 15.168 0 9.306l8.332-1.151z"/>
+      </svg>
+      <text x="28" y="12" fill="#333333" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Total Stars:</text>
+      <text x="290" y="12" fill="#333333" font-size="13" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif" text-anchor="end">13</text>
+    </g>
+    <g transform="translate(25, 76)">
+      <svg width="16" height="16" viewBox="0 0 0 0 32 32" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 1.25a14.75 14.75 0 0 1 0 29.5H2V16C2 7.85 8.6 1.25 16 1.25zM8 18a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2H8zm0-4a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2H8z"/>
+      </svg>
+      <text x="28" y="12" fill="#333333" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Commits:</text>
+      <text x="290" y="12" fill="#333333" font-size="13" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif" text-anchor="end">362</text>
+    </g>
+    <g transform="translate(25, 104)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 13v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7l2 2h5a2 2 0 0 1 2 2v1H9l-2 4v5h11l2-6z"/>
+      </svg>
+      <text x="28" y="12" fill="#333333" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">PRs Merged:</text>
+      <text x="290" y="12" fill="#333333" font-size="13" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif" text-anchor="end">18</text>
+    </g>
+    <g transform="translate(25, 132)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <text x="28" y="12" fill="#333333" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Reviews:</text>
+      <text x="290" y="12" fill="#333333" font-size="13" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif" text-anchor="end">0</text>
+    </g>
+    <g transform="translate(25, 160)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 5a1 1 0 011 1v4a1 1 0 01-1 1H9a1 1 0 110-2h2V8a1 1 0 011-1z"/>
+      </svg>
+      <text x="28" y="12" fill="#333333" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Issues:</text>
+      <text x="290" y="12" fill="#333333" font-size="13" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif" text-anchor="end">1</text>
+    </g>
+    <g transform="translate(25, 188)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 3h18v18H3V3zm2 2v14h14V5H5z"/>
+      </svg>
+      <text x="28" y="12" fill="#333333" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Repos:</text>
+      <text x="290" y="12" fill="#333333" font-size="13" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif" text-anchor="end">9</text>
+    </g>
+</svg>
