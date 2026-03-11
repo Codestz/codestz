@@ -107,14 +107,13 @@ I build developer tools that make AI agents smarter.
 > I write about AI-driven development, MCP integrations, and developer tooling at **[codestz.dev](https://codestz.dev)**
 
 <!-- BLOG-POST-LIST:START -->
-
-- [Building a Portfolio with AI Orchestration](https://codestz.dev/experiments/building-portfolio-with-ai)
-- [RTK: Rust Token Killer -- 60-90% Token Savings](https://codestz.dev/experiments/rtk-rust-token-killer)
-- [mcpx: CLI Over MCP](https://codestz.dev/experiments/mcpx-cli-over-mcp)
-- [Serena: MCP Architectural Mastery](https://codestz.dev/experiments/serena-mcp-architectural-mastery)
-- [Surgical Code Editing with AI Agents](https://codestz.dev/experiments/surgical-code-editing)
-- [SPARC Methodology for AI Development](https://codestz.dev/experiments/sparc-methodology-ai-development)
-- [Spec-Driven Development with Tessl](https://codestz.dev/experiments/spec-driven-development-tessl)
+- [MCP Is a Crutch: Why CLI Tools Are the Future of AI Agent Tooling](https://codestz.dev/experiments/mcpx-cli-over-mcp)
+- [SPARC: The Methodology That Turns Vibe Coding Into Actual Engineering](https://codestz.dev/experiments/sparc-methodology-ai-development)
+- [Spec-Driven Development: Why Writing Specs Before Code Is the Next Paradigm Shift](https://codestz.dev/experiments/spec-driven-development-tessl)
+- [RTK: The Rust Binary That Slashed My Claude Code Token Usage by 70%](https://codestz.dev/experiments/rtk-rust-token-killer)
+- [From Vibe Coding to Symbolic Reasoning: How Serena MCP Gives AI Agents X-Ray Vision](https://codestz.dev/experiments/serena-mcp-architectural-mastery)
+- [Surgical Code Editing: The 10x Token Efficiency Pattern](https://codestz.dev/experiments/surgical-code-editing)
+- [Building a Complete Portfolio Using Only AI: Zero Human Code](https://codestz.dev/experiments/building-portfolio-with-ai)
 <!-- BLOG-POST-LIST:END -->
 
 ---
