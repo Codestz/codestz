@@ -8,6 +8,7 @@ import { ReadingProgressBar } from '@/components/blog';
 import { contentService } from '@/lib/services';
 import { ROUTES } from '@/lib/constants';
 import type { Metadata } from 'next';
+import remarkGfm from 'remark-gfm';
 import { mdxComponents } from '../../../../mdx-components';
 import { generateBlogPostMetadata, formatDate } from '@/lib/utils';
 import type { BlogPostPageProps } from './page.types';
@@ -133,6 +134,9 @@ export default async function ExperimentPage({ params }: BlogPostPageProps) {
                 options={{
                   blockDangerousJS: false,
                   blockJS: false,
+                  mdxOptions: {
+                    remarkPlugins: [remarkGfm],
+                  },
                 }}
               />
             </div>

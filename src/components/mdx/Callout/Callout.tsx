@@ -38,9 +38,9 @@ export function Callout({ children, author, role, type = 'quote', className }: C
 
       {/* Content */}
       <div className="border-l-[6px] border-l-secondary p-4 sm:p-6">
-        <p className="text-sm sm:text-base leading-relaxed text-foreground italic">
+        <div className="text-sm sm:text-base leading-relaxed text-foreground italic [&>p]:mb-0 [&>p]:inline">
           &ldquo;{children}&rdquo;
-        </p>
+        </div>
 
         {author && (
           <div className="mt-4 flex items-center gap-3 border-t-[2px] border-foreground pt-3">

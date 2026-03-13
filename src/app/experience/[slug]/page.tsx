@@ -7,6 +7,7 @@ import { Button, Badge } from '@/components/ui';
 import { contentService } from '@/lib/services';
 import { ROUTES } from '@/lib/constants';
 import type { Metadata } from 'next';
+import remarkGfm from 'remark-gfm';
 import { mdxComponents } from '../../../../mdx-components';
 import { generateProjectMetadata } from '@/lib/utils';
 import type { ExperiencePageProps } from './page.types';
@@ -163,7 +164,15 @@ export default async function ExperienceDetailPage({ params }: ExperiencePagePro
 
             {/* Project Content */}
             <div className="mt-8">
-              <MDXRemote source={project.content} components={mdxComponents} />
+              <MDXRemote
+                source={project.content}
+                components={mdxComponents}
+                options={{
+                  mdxOptions: {
+                    remarkPlugins: [remarkGfm],
+                  },
+                }}
+              />
             </div>
           </article>
         </div>
