@@ -1,37 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="340" height="168" viewBox="0 0 340 168">
   <text x="25" y="28" fill="#7c3aed" font-size="16" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Top Languages</text>
-  <rect x="25" y="42" width="121.8" height="8" fill="#dea584" rx="0"/><rect x="146.8" y="42" width="94.54" height="8" fill="#3178c6" rx="0"/><rect x="241.34000000000003" y="42" width="21.460000000000004" height="8" fill="#00ADD8" rx="0"/><rect x="262.8" y="42" width="19.720000000000002" height="8" fill="#fcb32c" rx="0"/><rect x="282.52000000000004" y="42" width="18.85" height="8" fill="#f1e05a" rx="0"/><rect x="301.37000000000006" y="42" width="9.860000000000001" height="8" fill="#ff5a03" rx="0"/><rect x="311.2300000000001" y="42" width="1.74" height="8" fill="#3572A5" rx="0"/><rect x="312.9700000000001" y="42" width="1.74" height="8" fill="#663399" rx="0"/>
+  <rect x="25" y="42" width="119.77" height="8" fill="#dea584" rx="0"/><rect x="144.76999999999998" y="42" width="100.91999999999999" height="8" fill="#3178c6" rx="0"/><rect x="245.68999999999997" y="42" width="20.01" height="8" fill="#00ADD8" rx="0"/><rect x="265.7" y="42" width="17.98" height="8" fill="#fcb32c" rx="0"/><rect x="283.68" y="42" width="17.4" height="8" fill="#f1e05a" rx="0"/><rect x="301.08" y="42" width="9.860000000000001" height="8" fill="#ff5a03" rx="0"/><rect x="310.94" y="42" width="2.03" height="8" fill="#663399" rx="0"/><rect x="312.96999999999997" y="42" width="1.74" height="8" fill="#3572A5" rx="0"/>
   
     <g transform="translate(25, 70)">
       <circle cx="5" cy="5" r="5" fill="#dea584"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Rust 42.0%</text>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Rust 41.3%</text>
     </g>
     <g transform="translate(175, 70)">
       <circle cx="5" cy="5" r="5" fill="#3178c6"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">TypeScript 32.6%</text>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">TypeScript 34.8%</text>
     </g>
     <g transform="translate(25, 92)">
       <circle cx="5" cy="5" r="5" fill="#00ADD8"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Go 7.4%</text>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Go 6.9%</text>
     </g>
     <g transform="translate(175, 92)">
       <circle cx="5" cy="5" r="5" fill="#fcb32c"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">MDX 6.8%</text>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">MDX 6.2%</text>
     </g>
     <g transform="translate(25, 114)">
       <circle cx="5" cy="5" r="5" fill="#f1e05a"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">JavaScript 6.5%</text>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">JavaScript 6.0%</text>
     </g>
     <g transform="translate(175, 114)">
       <circle cx="5" cy="5" r="5" fill="#ff5a03"/>
       <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Astro 3.4%</text>
     </g>
     <g transform="translate(25, 136)">
-      <circle cx="5" cy="5" r="5" fill="#3572A5"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Python 0.6%</text>
+      <circle cx="5" cy="5" r="5" fill="#663399"/>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">CSS 0.7%</text>
     </g>
     <g transform="translate(175, 136)">
-      <circle cx="5" cy="5" r="5" fill="#663399"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">CSS 0.6%</text>
+      <circle cx="5" cy="5" r="5" fill="#3572A5"/>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Python 0.6%</text>
     </g>
 </svg>
