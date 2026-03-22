@@ -6,7 +6,7 @@
         <path d="M12 .587l3.668 7.568L24 9.306l-6 5.862 1.416 8.245L12 19.446l-7.416 3.967L6 15.168 0 9.306l8.332-1.151z"/>
       </svg>
       <text x="28" y="12" fill="#333333" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Total Stars:</text>
-      <text x="290" y="12" fill="#333333" font-size="13" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif" text-anchor="end">19</text>
+      <text x="290" y="12" fill="#333333" font-size="13" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif" text-anchor="end">20</text>
     </g>
     <g transform="translate(25, 76)">
       <svg width="16" height="16" viewBox="0 0 0 0 32 32" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
