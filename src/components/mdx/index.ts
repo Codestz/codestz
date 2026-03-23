@@ -18,3 +18,5 @@ export { Callout } from './Callout';
 export type { CalloutProps } from './Callout';
 export { ProcessFlow } from './ProcessFlow';
 export type { ProcessFlowProps, ProcessStep } from './ProcessFlow';
+export { StatBlock } from './StatBlock';
+export type { StatBlockProps, Stat } from './StatBlock';
