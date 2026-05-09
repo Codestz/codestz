@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="340" height="168" viewBox="0 0 340 168">
   <text x="25" y="28" fill="#7c3aed" font-size="16" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Top Languages</text>
-  <rect x="25" y="42" width="168.78000000000003" height="8" fill="#dea584" rx="0"/><rect x="193.78000000000003" y="42" width="66.99000000000001" height="8" fill="#3178c6" rx="0"/><rect x="260.77000000000004" y="42" width="25.520000000000003" height="8" fill="#00ADD8" rx="0"/><rect x="286.29" y="42" width="15.95" height="8" fill="#fcb32c" rx="0"/><rect x="302.24" y="42" width="7.25" height="8" fill="#ff5a03" rx="0"/><rect x="309.49" y="42" width="2.32" height="8" fill="#663399" rx="0"/><rect x="311.81" y="42" width="1.74" height="8" fill="#3572A5" rx="0"/><rect x="313.55" y="42" width="1.45" height="8" fill="#41b883" rx="0"/>
+  <rect x="25" y="42" width="168.78000000000003" height="8" fill="#dea584" rx="0"/><rect x="193.78000000000003" y="42" width="66.99000000000001" height="8" fill="#3178c6" rx="0"/><rect x="260.77000000000004" y="42" width="25.520000000000003" height="8" fill="#00ADD8" rx="0"/><rect x="286.29" y="42" width="15.95" height="8" fill="#fcb32c" rx="0"/><rect x="302.24" y="42" width="6.96" height="8" fill="#ff5a03" rx="0"/><rect x="309.2" y="42" width="2.32" height="8" fill="#663399" rx="0"/><rect x="311.52" y="42" width="1.74" height="8" fill="#3572A5" rx="0"/><rect x="313.26" y="42" width="1.45" height="8" fill="#41b883" rx="0"/>
   
     <g transform="translate(25, 70)">
       <circle cx="5" cy="5" r="5" fill="#dea584"/>
@@ -20,7 +20,7 @@
     </g>
     <g transform="translate(25, 114)">
       <circle cx="5" cy="5" r="5" fill="#ff5a03"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Astro 2.5%</text>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Astro 2.4%</text>
     </g>
     <g transform="translate(175, 114)">
       <circle cx="5" cy="5" r="5" fill="#663399"/>
