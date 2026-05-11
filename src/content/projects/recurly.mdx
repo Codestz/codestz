@@ -1,25 +1,39 @@
 ---
-title: "Software Engineer II at Recurly"
-description: "Building Recurly Commerce, a subscription management platform integrated with Shopify for recurring revenue businesses"
-publishedAt: "2025-07-01"
+title: 'Senior Software Engineer at Recurly'
+description: 'Building Recurly Commerce, a subscription management platform integrated with Shopify for recurring revenue businesses. Promoted to Senior Software Engineer in May 2026.'
+publishedAt: '2025-07-01'
 current: true
-category: "current"
-tags: ["shopify", "subscriptions", "saas", "ecommerce", "fullstack"]
+category: 'current'
+tags: ['shopify', 'subscriptions', 'saas', 'ecommerce', 'fullstack']
 featured: true
 type: 'experience'
-author: "Esteban Estrada"
-thumbnail: "/images/projects/recurly.jpg"
+author: 'Esteban Estrada'
+thumbnail: '/images/projects/recurly.jpg'
 ---
 
-# Software Engineer II at Recurly
+# Senior Software Engineer at Recurly
 
-Currently working at Recurly as a Software Engineer II, focused on building and enhancing **Recurly Commerce**, a subscription management platform that helps Shopify merchants manage recurring revenue through subscriptions, memberships, and subscription boxes.
+Currently working at Recurly as a **Senior Software Engineer**, focused on building and enhancing **Recurly Commerce**, a subscription management platform that helps Shopify merchants manage recurring revenue through subscriptions, memberships, and subscription boxes.
+
+<MilestoneCard
+  kind="promotion"
+  title="Promoted to Senior Software Engineer"
+  subtitle="Recurly · Recurly Commerce"
+  date="May 2026"
+  from="Software Engineer II"
+  to="Senior Software Engineer"
+  highlights={[
+    'Owning end-to-end delivery on Shopify checkout and customer-portal features',
+    'Driving architectural decisions across the subscription lifecycle layer',
+    'Mentoring teammates and raising the floor on review quality',
+  ]}
+/>
 
 ## Experience Overview
 
 - **Company**: Recurly
-- **Role**: Software Engineer II
-- **Timeline**: July 2025 - Present (8 months)
+- **Role**: Senior Software Engineer _(promoted from Software Engineer II, May 2026)_
+- **Timeline**: July 2025 - Present
 - **Location**: Medellín, Antioquia, Colombia
 - **Product**: Recurly Commerce (Shopify Subscription Platform)
 - **Tech Stack**: Full-stack web development, Shopify API, Payment Processing
@@ -39,6 +53,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 ## Key Responsibilities
 
 ### Shopify Integration Development
+
 - Building and maintaining Shopify app extensions (checkout and customer account integrations)
 - Developing seamless integration between Recurly Commerce and Shopify's native checkout
 - Implementing webhook handlers for Shopify events (orders, products, customers)
@@ -46,6 +61,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Working with Shopify's GraphQL Admin API for store data access
 
 ### Subscription Management Features
+
 - Developing subscription lifecycle management (create, pause, skip, cancel)
 - Building bundle configuration systems (gift boxes, fixed bundles, customizable options)
 - Implementing pricing models (subscribe and save, tiered pricing, usage-based)
@@ -53,6 +69,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Developing subscription modification flows (swaps, add-ons, upgrades/downgrades)
 
 ### Customer Portal Development
+
 - Building low-code customer portal for subscription self-service
 - Implementing skip and swap functionality for subscription flexibility
 - Creating gift subscription management features
@@ -60,6 +77,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Ensuring mobile-responsive portal experience
 
 ### Payment Processing & Billing
+
 - Working with payment processing pipelines for recurring billing
 - Implementing retry logic for failed payments
 - Developing dunning management for recovering failed charges
@@ -67,6 +85,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Handling proration calculations for subscription changes
 
 ### Analytics & Reporting
+
 - Building analytics dashboards for merchant insights
 - Implementing metrics tracking (MRR, churn rate, LTV)
 - Creating executive reporting features
@@ -74,6 +93,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Integrating with third-party analytics platforms (Klaviyo, Fivetran)
 
 ### Churn Reduction Features
+
 - Developing retention tools (pause subscriptions, incentives)
 - Building cancellation flow optimizations
 - Implementing win-back campaigns and offers
@@ -83,9 +103,11 @@ The platform integrates directly into Shopify's native checkout experience and p
 ## Key Challenges & Solutions
 
 ### Challenge 1: Shopify API Rate Limiting
+
 **Problem**: High-volume operations (bulk imports, sync operations) hitting Shopify API rate limits.
 
 **Solution**:
+
 - Implemented request queuing with exponential backoff
 - Built batch processing for bulk operations
 - Added caching layer for frequently accessed data
@@ -93,9 +115,11 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Optimized API calls to use bulk operations where possible
 
 ### Challenge 2: Subscription State Synchronization
+
 **Problem**: Keeping subscription state consistent between Recurly Commerce and Shopify (orders, inventory, customer data).
 
 **Solution**:
+
 - Implemented event-driven architecture with webhooks
 - Built idempotent webhook handlers to prevent duplicate processing
 - Created conflict resolution strategies for out-of-sync states
@@ -103,9 +127,11 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Implemented retry mechanisms with dead letter queues
 
 ### Challenge 3: Complex Pricing Calculations
+
 **Problem**: Handling various pricing models (tiered pricing, promotions, trials, proration) with correct tax calculations.
 
 **Solution**:
+
 - Built comprehensive pricing engine with rule-based calculations
 - Implemented preview functionality for subscription changes
 - Created extensive test coverage for pricing scenarios
@@ -113,9 +139,11 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Documented pricing logic for support team reference
 
 ### Challenge 4: Checkout Extension Performance
+
 **Problem**: Checkout extensions need to load fast to not impact conversion rates.
 
 **Solution**:
+
 - Optimized bundle size for checkout extensions
 - Implemented lazy loading for non-critical features
 - Added performance monitoring and alerting
@@ -125,6 +153,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 ## Skills Developed
 
 **Technical Skills**:
+
 - Shopify app development and ecosystem
 - Subscription billing system architecture
 - Payment processing and PCI compliance
@@ -133,6 +162,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Multi-tenant SaaS architecture
 
 **Domain Knowledge**:
+
 - Subscription business models and metrics (MRR, churn, LTV)
 - E-commerce best practices
 - Recurring payment processing
@@ -140,6 +170,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Customer retention strategies
 
 **Tools & Platforms**:
+
 - Shopify Admin API (GraphQL & REST)
 - Shopify App Extensions
 - Third-party integrations (Klaviyo, Postscript, Gorgias)
@@ -147,6 +178,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Analytics platforms
 
 **Soft Skills**:
+
 - Working on a product used by thousands of merchants
 - Balancing merchant needs with platform scalability
 - Cross-functional collaboration with product, design, and support teams
@@ -156,18 +188,21 @@ The platform integrates directly into Shopify's native checkout experience and p
 ## Impact & Results
 
 ### Platform Performance
+
 - Maintaining high availability for subscription processing (critical for recurring revenue)
 - Fast checkout extension load times to prevent conversion drop-off
 - Reliable webhook processing for real-time sync
 - Scalable architecture handling thousands of subscription operations daily
 
 ### Merchant Experience
+
 - Simplified subscription setup process for new merchants
 - Intuitive admin interface for managing subscriptions
 - Comprehensive analytics for business insights
 - Flexible subscription options to match various business models
 
 ### Customer Experience
+
 - Seamless Shopify-native checkout experience
 - Easy-to-use customer portal for subscription management
 - Reliable subscription deliveries and billing
@@ -176,6 +211,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 ## Technical Highlights
 
 **Shopify Integration Architecture**:
+
 - OAuth 2.0 authentication for merchant stores
 - Webhook subscriptions for real-time updates
 - App extensions embedded in Shopify admin and checkout
@@ -183,6 +219,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Metafield management for subscription data
 
 **Subscription Engine**:
+
 - Recurring billing scheduler with timezone handling
 - Subscription lifecycle state machine
 - Flexible pricing rule engine
@@ -190,6 +227,7 @@ The platform integrates directly into Shopify's native checkout experience and p
 - Automated notification system
 
 **Third-Party Integrations**:
+
 - Klaviyo for email marketing automation
 - Postscript for SMS notifications
 - Gorgias for customer support context

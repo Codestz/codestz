@@ -24,3 +24,5 @@ export { ScopeBlock } from './ScopeBlock';
 export type { ScopeBlockProps } from './ScopeBlock';
 export { DecisionLog } from './DecisionLog';
 export type { DecisionLogProps, Decision, DecisionVerdict } from './DecisionLog';
+export { MilestoneCard } from './MilestoneCard';
+export type { MilestoneCardProps, MilestoneKind } from './MilestoneCard';
