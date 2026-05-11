@@ -10,6 +10,8 @@ import {
   Callout,
   ProcessFlow,
   StatBlock,
+  ScopeBlock,
+  DecisionLog,
 } from '@/components/mdx';
 import { Mermaid } from '@/components/mdx/Mermaid';
 
@@ -32,6 +34,8 @@ export const mdxComponents: MDXComponents = {
   Callout,
   ProcessFlow,
   StatBlock,
+  ScopeBlock,
+  DecisionLog,
   // Headings
   h1: ({ children }) => (
     <h1 className="mb-4 sm:mb-6 mt-6 sm:mt-8 font-heading text-3xl sm:text-4xl font-bold uppercase text-foreground">
