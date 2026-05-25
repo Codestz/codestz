@@ -34,7 +34,7 @@
         <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 5a1 1 0 011 1v4a1 1 0 01-1 1H9a1 1 0 110-2h2V8a1 1 0 011-1z"/>
       </svg>
       <text x="28" y="12" fill="#333333" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Issues:</text>
-      <text x="290" y="12" fill="#333333" font-size="13" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif" text-anchor="end">1</text>
+      <text x="290" y="12" fill="#333333" font-size="13" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif" text-anchor="end">0</text>
     </g>
     <g transform="translate(25, 188)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
