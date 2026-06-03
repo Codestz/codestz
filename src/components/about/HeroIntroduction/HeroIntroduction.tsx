@@ -16,7 +16,7 @@ const STATS: StatCard[] = [
 ];
 
 const TITLES = [
-  'Software Engineer II',
+  'Senior Software Engineer',
   'AI Integration Specialist',
   'Full-Stack Developer',
   'Performance Optimizer',
@@ -122,7 +122,8 @@ export function HeroIntroduction({ className }: HeroIntroductionProps) {
           {/* Intro */}
           <p className="text-lg sm:text-xl text-foreground/90 mb-6 sm:mb-8 leading-relaxed">
             Building scalable, high-performance applications with modern full-stack technologies.
-            Passionate about AI integration, autonomous agents, and creating exceptional user experiences.
+            Passionate about AI integration, autonomous agents, and creating exceptional user
+            experiences.
           </p>
 
           {/* Download Resume */}
@@ -146,8 +147,12 @@ export function HeroIntroduction({ className }: HeroIntroductionProps) {
             key={idx}
             className="border-[3px] border-foreground bg-bg-elevated shadow-[6px_6px_0px_0px] shadow-foreground p-4 sm:p-6 text-center"
           >
-            <div className="text-4xl sm:text-5xl font-bold text-primary mb-2 font-mono">{stat.value}</div>
-            <div className="text-base sm:text-lg font-bold uppercase text-foreground/80">{stat.label}</div>
+            <div className="text-4xl sm:text-5xl font-bold text-primary mb-2 font-mono">
+              {stat.value}
+            </div>
+            <div className="text-base sm:text-lg font-bold uppercase text-foreground/80">
+              {stat.label}
+            </div>
           </div>
         ))}
       </div>

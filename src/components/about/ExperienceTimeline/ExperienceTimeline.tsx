@@ -11,7 +11,7 @@ import type { ExperienceTimelineProps, Experience } from './ExperienceTimeline.t
 const EXPERIENCES: Experience[] = [
   {
     company: 'Recurly',
-    role: 'Software Engineer II',
+    role: 'Senior Software Engineer',
     duration: 'July 2025 - Present',
     current: true,
     achievements: [
@@ -32,7 +32,14 @@ const EXPERIENCES: Experience[] = [
       'Built responsive UIs with React and Next.js',
       'Designed robust APIs for AI-driven workflows',
     ],
-    technologies: ['TypeScript', 'Python', 'React', 'Next.js', 'AI Integration', 'Autonomous Agents'],
+    technologies: [
+      'TypeScript',
+      'Python',
+      'React',
+      'Next.js',
+      'AI Integration',
+      'Autonomous Agents',
+    ],
   },
   {
     company: '8base',
@@ -114,7 +121,10 @@ export function ExperienceTimeline({ className }: ExperienceTimelineProps) {
         <div className="absolute left-0 sm:left-4 md:left-8 top-0 bottom-0 w-[3px] sm:w-[4px] bg-foreground" />
 
         {/* Experience Cards */}
-        <div ref={timelineRef} className="space-y-8 sm:space-y-10 md:space-y-12 pl-6 sm:pl-12 md:pl-24">
+        <div
+          ref={timelineRef}
+          className="space-y-8 sm:space-y-10 md:space-y-12 pl-6 sm:pl-12 md:pl-24"
+        >
           {EXPERIENCES.map((exp, idx) => (
             <div key={idx} className="relative">
               {/* Timeline Dot */}
@@ -142,7 +152,9 @@ export function ExperienceTimeline({ className }: ExperienceTimelineProps) {
                     )}
                   </div>
                   <div className="text-lg sm:text-xl font-bold text-foreground/90">{exp.role}</div>
-                  <div className="text-xs sm:text-sm font-mono text-foreground/60 mt-1">{exp.duration}</div>
+                  <div className="text-xs sm:text-sm font-mono text-foreground/60 mt-1">
+                    {exp.duration}
+                  </div>
                 </div>
 
                 {/* Achievements */}

@@ -1,6 +1,6 @@
 <div align="center">
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=32&duration=3000&pause=1000&color=7C3AED&center=true&vCenter=true&random=false&width=700&height=70&lines=Hey%2C+I'm+Esteban+Estrada;Software+Engineer+II+%40+Recurly;Building+tools+for+AI+agents;Rust+%7C+TypeScript+%7C+Go)](https://codestz.dev)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=32&duration=3000&pause=1000&color=7C3AED&center=true&vCenter=true&random=false&width=700&height=70&lines=Hey%2C+I'm+Esteban+Estrada;Senior+Software+Engineer+%40+Recurly;Building+tools+for+AI+agents;Rust+%7C+TypeScript+%7C+Go)](https://codestz.dev)
 
 I build developer tools that make AI agents smarter.
 <br/>Rust, TypeScript, Go — CLIs, MCP servers, LSP integrations.
