@@ -4,7 +4,7 @@ import { MDXRemote } from 'next-mdx-remote/rsc';
 import Image from 'next/image';
 import { Section } from '@/components/sections';
 import { Button, Badge } from '@/components/ui';
-import { ReadingProgressBar } from '@/components/blog';
+import { ReadingProgressBar, SeriesNav, SeriesPager } from '@/components/blog';
 import { contentService } from '@/lib/services';
 import { ROUTES } from '@/lib/constants';
 import type { Metadata } from 'next';
@@ -59,6 +59,16 @@ export default async function ExperimentPage({ params }: BlogPostPageProps) {
   }
 
   const post = postResult.data;
+
+  const seriesResult = post.series ? await contentService.getPostsBySeries(post.series) : null;
+  const seriesPosts = seriesResult?.success ? seriesResult.data : [];
+
+  const currentIndex = seriesPosts.findIndex((p) => p.slug === post.slug);
+  const previousPart = currentIndex > 0 ? seriesPosts[currentIndex - 1] : null;
+  const nextPart =
+    currentIndex >= 0 && currentIndex < seriesPosts.length - 1
+      ? seriesPosts[currentIndex + 1]
+      : null;
 
   return (
     <main>
@@ -125,6 +135,16 @@ export default async function ExperimentPage({ params }: BlogPostPageProps) {
               </div>
             </header>
 
+            {/* Series Navigation */}
+            {post.series && seriesPosts.length > 1 && (
+              <SeriesNav
+                series={post.series}
+                posts={seriesPosts}
+                currentSlug={post.slug}
+                className="mb-8"
+              />
+            )}
+
             {/* Article Content */}
             <div className="mt-8">
               <MDXRemote
@@ -140,6 +160,11 @@ export default async function ExperimentPage({ params }: BlogPostPageProps) {
                 }}
               />
             </div>
+
+            {/* Series part navigation */}
+            {post.series && seriesPosts.length > 1 && (
+              <SeriesPager previous={previousPart} next={nextPart} className="mt-12" />
+            )}
           </article>
         </div>
       </Section>

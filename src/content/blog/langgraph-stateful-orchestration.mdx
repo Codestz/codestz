@@ -1,0 +1,190 @@
+---
+title: 'LangGraph: When the Agent Loop Becomes a State Machine'
+description: 'Drop below createAgent into raw LangGraph — StateGraph, cycles, checkpointing, and durable human-in-the-loop resume. We rebuild the support agent as an explicit graph and watch the black box open up. Part 3 (finale) of a hands-on TypeScript series.'
+publishedAt: '2026-06-17'
+category: 'ai'
+tags: ['langgraph', 'ai-agents', 'state-machines', 'typescript', 'langchain-series']
+featured: true
+type: 'experiment'
+author: 'Esteban Estrada'
+thumbnail: '/images/blog/langgraph-stateful-orchestration.png'
+series: 'Building AI Products with LangChain'
+seriesOrder: 3
+---
+
+[Part 1](/experiments/langchain-ecosystem-map-2026) mapped the ecosystem. [Part 2](/experiments/langchain-createagent-middleware) built a support agent with `createAgent` and middleware — and kept hand-waving at a `thread_id`, a "checkpointer," and a runtime that "persists state so it can resume."
+
+That runtime is **LangGraph**, and this post opens the box. We rebuild the same support flow as an explicit `StateGraph` so you can see the thing `createAgent` was generating for you all along — and, more importantly, so you can build the loops `createAgent` _can't_ express.
+
+## Why drop down at all
+
+`createAgent` is one fixed shape: a ReAct loop. Model → tools → model → tools → answer. That covers a huge amount of ground. You drop to LangGraph the moment your control flow stops being that shape:
+
+<Comparison
+  title="The line between createAgent and LangGraph"
+  wrong="Force every workflow into the ReAct loop: bolt on more tools, stuff routing logic into the system prompt, and pray the model branches correctly every time."
+  right="When the flow is 'triage → maybe escalate → act → review → loop back until it passes,' that's a graph with named nodes and explicit edges. The branching is code, not a prompt suggestion."
+  language="text"
+/>
+
+The three things LangGraph gives you that a plain agent doesn't:
+
+- **Cycles** — a node can route back to an earlier node. Real loops, not just tool-call repetition.
+- **Explicit branching** — `addConditionalEdges` routes on _state_, deterministically, in code you can test.
+- **Durable state** — checkpointing means the graph can pause mid-run and resume hours later on a different request.
+
+## State is the whole game
+
+A graph is just nodes that read and write a shared **state** object. You declare its shape with `Annotation.Root`, and `MessagesAnnotation` gives you the standard chat-history field (with the right append reducer) for free.
+
+```typescript
+import { Annotation, MessagesAnnotation } from '@langchain/langgraph';
+
+const TriageState = Annotation.Root({
+  ...MessagesAnnotation.spec, // messages: BaseMessage[] with append reducer
+  category: Annotation<'billing' | 'technical' | 'other'>,
+  attempts: Annotation<number>({
+    reducer: (_prev, next) => next,
+    default: () => 0,
+  }),
+  resolved: Annotation<boolean>({ reducer: (_p, n) => n, default: () => false }),
+});
+```
+
+<Callout type="tip">
+  LangGraph.js 1.0 also ships a Zod-based `StateSchema` API (`MessagesValue`, `ReducedValue`) if you
+  prefer Zod over `Annotation`. They're equivalent — `MessagesZodState` is just the Zod twin of
+  `MessagesAnnotation`. Pick one; this post uses `Annotation` because it's the most widely
+  documented.
+</Callout>
+
+The `reducer` is the key idea: when a node returns `{ attempts: 3 }`, the reducer decides how that merges into existing state. `messages` uses an append reducer (new messages add to the list); `attempts` just overwrites. State updates are **merges, not replacements** — that's what makes concurrent and resumed runs behave.
+
+## Building the graph
+
+Nodes are plain functions: `(state) => partialStateUpdate`. Edges wire them. Here's the support flow as a real cycle — triage the ticket, act on it, review the result, and **loop back to act** if it's not resolved yet.
+
+```typescript
+import { StateGraph, START, END } from '@langchain/langgraph';
+import { ChatAnthropic } from '@langchain/anthropic';
+
+const model = new ChatAnthropic({ model: 'claude-sonnet-4-6' });
+
+const triage = async (state: typeof TriageState.State) => {
+  const res = await model.invoke([
+    { role: 'system', content: 'Classify: billing | technical | other. One word.' },
+    ...state.messages,
+  ]);
+  return { category: res.content.toString().trim() as typeof state.category };
+};
+
+const act = async (state: typeof TriageState.State) => {
+  const res = await model.invoke([
+    { role: 'system', content: `You handle ${state.category} tickets. Resolve it.` },
+    ...state.messages,
+  ]);
+  return { messages: [res], attempts: state.attempts + 1 };
+};
+
+const review = async (state: typeof TriageState.State) => {
+  const res = await model.invoke([
+    { role: 'system', content: 'Did the last reply fully resolve the ticket? Answer yes or no.' },
+    ...state.messages,
+  ]);
+  return { resolved: res.content.toString().toLowerCase().includes('yes') };
+};
+
+const graph = new StateGraph(TriageState)
+  .addNode('triage', triage)
+  .addNode('act', act)
+  .addNode('review', review)
+  .addEdge(START, 'triage')
+  .addEdge('triage', 'act')
+  .addEdge('act', 'review')
+  // the cycle: unresolved → back to act, but cap attempts so it can't spin forever
+  .addConditionalEdges('review', (state) => (state.resolved || state.attempts >= 3 ? END : 'act'));
+```
+
+That conditional edge is the payoff. `review` routes back to `act` until the ticket is resolved or we hit the attempt cap. You **cannot** express that with `createAgent` — its loop only repeats tool calls, not arbitrary nodes. Here the loop is a literal edge in a graph you can draw, test, and reason about.
+
+## Checkpointing: state that survives
+
+Compile with a checkpointer and the graph persists its state after every step, keyed by `thread_id`. Same thread → conversation continues. New thread → fresh state.
+
+```typescript
+import { MemorySaver } from '@langchain/langgraph';
+
+const app = graph.compile({ checkpointer: new MemorySaver() });
+
+const config = { configurable: { thread_id: 'ticket-A-4471' } };
+await app.invoke(
+  { messages: [{ role: 'user', content: 'Double charged on my last invoice.' }] },
+  config
+);
+
+// Days later, SAME thread — full history and state are restored automatically
+await app.invoke({ messages: [{ role: 'user', content: 'Any update?' }] }, config);
+```
+
+<Callout type="warning">
+  `MemorySaver` is in-process — great for development, gone on restart. In production you swap it
+  for a durable checkpointer (Postgres / Redis), which is exactly what **LangSmith Deployment**
+  provisions for you. The graph code doesn't change; only the checkpointer does.
+</Callout>
+
+This is the same `thread_id` + checkpointer that Part 2's human-in-the-loop relied on. Now you can see _why_ it worked: HITL is just a graph that pauses and persists.
+
+## Human-in-the-loop, from the inside
+
+In Part 2, `humanInTheLoopMiddleware` handed us an `__interrupt__`. Underneath, it calls LangGraph's `interrupt()` — pause the graph, persist everything, surface a payload, and wait. You resume with a `Command`.
+
+```typescript
+import { interrupt, Command } from '@langchain/langgraph';
+
+const refundReview = async (state: typeof TriageState.State) => {
+  // pauses here; the value comes from the human on resume
+  const decision = interrupt({
+    question: 'Approve this refund?',
+    proposed: state.messages.at(-1)?.content,
+  });
+
+  if (decision === 'reject') {
+    return { messages: [{ role: 'assistant', content: 'Refund declined — escalating.' }] };
+  }
+  return { resolved: true };
+};
+
+// First invoke runs until interrupt(), then returns paused
+await app.invoke({ messages: [...] }, config);
+
+// Human decides → resume the SAME thread, exactly where it stopped
+await app.invoke(new Command({ resume: 'approve' }), config);
+```
+
+No queue, no polling loop, no re-running from the top. The checkpointer froze the graph mid-execution; the `Command` thaws it. That's "stateful orchestration" in one mechanism — and it's why 2026's agents can pause for a human and pick up days later without losing their place.
+
+## The series in one mental model
+
+Three posts, one stack, from the top down:
+
+| Layer                       | What it owns                               | Reach for it when                                      |
+| --------------------------- | ------------------------------------------ | ------------------------------------------------------ |
+| `createAgent` + middleware  | The ReAct loop, plus cross-cutting control | You want an agent fast and the loop is the right shape |
+| `LangGraph`                 | State, nodes, cycles, durable resume       | The flow branches, loops, or must survive a pause      |
+| `Annotation` / checkpointer | The state contract and its persistence     | Always — it's the substrate the other two stand on     |
+
+If you internalize one thing: **`createAgent` is a LangGraph graph with the loop pre-wired.** Everything in Part 2 was this, generated for you. Now you can write it by hand when the generated shape doesn't fit.
+
+## Where to go from here
+
+This is the finale of the series for now — three posts that take you from "what even is this ecosystem" to building real, stateful, resumable agents in TypeScript. The two layers we deliberately left for later:
+
+- **LangSmith** — trace every node and model call, score outputs against eval templates, and replay production traces against new models before you ship. The moment one of these graphs misbehaves in prod, this is where you'll live.
+- **deepagents** — when the task is genuinely "research-grade" (planning, sub-agents, a virtual filesystem), `createDeepAgent` hands you that harness — and it returns a compiled LangGraph graph, so everything in this post still applies underneath it.
+- **LangSmith Deployment** — `langgraph deploy` to take the graph to production with a real checkpointer, then watch it with the tracing above.
+
+<Callout type="info">
+  You now have the spine of the whole ecosystem: an agent loop you can build fast, a state machine
+  you can drop to when the loop won't bend, and a persistence layer that makes both resumable.
+  That's enough to ship a real AI product — the rest is observability and scale.
+</Callout>

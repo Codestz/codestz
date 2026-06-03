@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, ChevronDown, ChevronUp } from 'lucide-react';
 import gsap from 'gsap';
 import { Badge } from '@/components/ui/primitives';
 import { cn, prefersReducedMotion } from '@/lib/utils';
@@ -21,6 +21,16 @@ export function FilterBar({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagsExpanded, setTagsExpanded] = useState(false);
+
+  // Number of tags shown before the list collapses. When collapsed, any
+  // selected tag beyond the limit stays visible so it can be deselected.
+  const TAG_LIMIT = 10;
+  const visibleTags = tagsExpanded
+    ? tags
+    : Array.from(
+        new Set([...tags.slice(0, TAG_LIMIT), ...selectedTags.filter((t) => tags.includes(t))])
+      );
 
   const searchRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -127,8 +137,8 @@ export function FilterBar({
         />
       </div>
 
-      {/* Category Filters */}
-      {categories.length > 0 && (
+      {/* Category Filters — only meaningful with more than one category */}
+      {categories.length > 1 && (
         <div ref={categoriesRef}>
           <h3 className="text-sm font-bold uppercase text-foreground/60 mb-3">Categories</h3>
           <div className="flex flex-wrap gap-2">
@@ -161,8 +171,8 @@ export function FilterBar({
       {tags.length > 0 && (
         <div ref={tagsRef}>
           <h3 className="text-sm font-bold uppercase text-foreground/60 mb-3">Tags</h3>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
+          <div className="flex flex-wrap items-center gap-2">
+            {visibleTags.map((tag) => (
               <Badge
                 key={tag}
                 variant={selectedTags.includes(tag) ? 'primary' : 'default'}
@@ -185,6 +195,32 @@ export function FilterBar({
                 {tag}
               </Badge>
             ))}
+
+            {tags.length > TAG_LIMIT && (
+              <button
+                onClick={() => setTagsExpanded((prev) => !prev)}
+                className={cn(
+                  'inline-flex items-center gap-1 px-3 py-1.5',
+                  'font-bold uppercase text-xs tracking-wider',
+                  'text-primary hover:text-foreground',
+                  'transition-colors duration-100',
+                  'focus-visible:outline-none focus-visible:underline'
+                )}
+                aria-expanded={tagsExpanded}
+              >
+                {tagsExpanded ? (
+                  <>
+                    Show less
+                    <ChevronUp className="w-3.5 h-3.5" aria-hidden="true" />
+                  </>
+                ) : (
+                  <>
+                    {`+${tags.length - TAG_LIMIT} more`}
+                    <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       )}

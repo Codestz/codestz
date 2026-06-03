@@ -1,4 +1,5 @@
 export * from './string.utils';
+export * from './series.utils';
 export { getRelativeTime } from './date.utils';
 export * from './date-format.utils';
 export * from './style.utils';

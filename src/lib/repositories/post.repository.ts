@@ -60,9 +60,26 @@ export class PostRepository extends BaseRepository<Post> implements IPostReposit
       readTime: calculateReadingTime(content),
       content,
       type: frontmatter.type || 'experiment',
+      series: frontmatter.series as string | undefined,
+      seriesOrder:
+        typeof frontmatter.seriesOrder === 'number' ? frontmatter.seriesOrder : undefined,
     };
 
     return { success: true, data: post };
+  }
+
+  async findBySeries(series: string): Promise<Result<readonly Post[]>> {
+    const allPostsResult = await this.findAll();
+
+    if (!allPostsResult.success) {
+      return allPostsResult;
+    }
+
+    const filtered = allPostsResult.data
+      .filter((post: Post) => post.series === series)
+      .sort((a: Post, b: Post) => (a.seriesOrder ?? 0) - (b.seriesOrder ?? 0));
+
+    return { success: true, data: filtered };
   }
 
   async findByCategory(category: string): Promise<Result<readonly Post[]>> {

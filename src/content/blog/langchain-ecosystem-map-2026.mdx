@@ -1,0 +1,172 @@
+---
+title: 'The 2026 LangChain Map: LangChain vs LangGraph vs LangSmith vs deepagents'
+description: 'A field map of the LangChain ecosystem after the 1.0 reset — what each piece is for, when to reach for it, and how the parts fit into a real AI product. Part 1 of a hands-on TypeScript series.'
+publishedAt: '2026-06-03'
+category: 'ai'
+tags: ['langchain', 'langgraph', 'langsmith', 'ai-agents', 'typescript', 'langchain-series']
+featured: true
+type: 'experiment'
+author: 'Esteban Estrada'
+thumbnail: '/images/blog/langchain-ecosystem-map-2026.png'
+series: 'Building AI Products with LangChain'
+seriesOrder: 1
+---
+
+Every six months someone declares LangChain dead. Every six months it ships another major release and posts another download record. As of 2026 it sits around **90M monthly downloads**, in production at Uber, JP Morgan, Blackrock, and Cisco.
+
+So the honest question isn't "is LangChain still relevant." It's: **the ecosystem fragmented into four named products — which one am I actually supposed to use, and when?**
+
+This series answers that by building. Every example is TypeScript (`langchain.js` / `langgraph.js` / `deepagentsjs`), because that's the stack this blog runs on and the one most product teams ship on. This first post is the map. The rest of the series is the territory.
+
+## Why the confusion exists
+
+LangChain in 2022 was a grab-bag: chains, agents, memory, retrievers, 600+ integrations, all in one import. It got a reputation for too many abstractions wrapping one `fetch` call.
+
+Then **October 2025 happened**: LangChain 1.0 and LangGraph 1.0 shipped on the same day. This was not a version bump — it was a re-architecture. The old chain spaghetti got deprecated, and the framework was rebuilt around a single idea: **an agent is a loop over a state machine.** Everything else is layers on top of that loop.
+
+Once you see the layering, the four products stop competing in your head and snap into a stack.
+
+## The four pieces
+
+<Comparison
+  title="What each piece actually is"
+  wrong="LangChain = LangGraph = LangSmith. Pick one and you're locked in. Each is a competing framework doing roughly the same thing."
+  right="They are layers. LangGraph is the runtime. LangChain is the agent + integrations on top of it. deepagents is an opinionated harness on top of that. LangSmith watches all three in production."
+  language="text"
+/>
+
+### LangChain — the fast path to an agent
+
+The headline API is now `createAgent`. Give it a model and some tools, get back a working agent. Under the hood it runs on the LangGraph runtime — so the "easy" path and the "powerful" path are the same engine.
+
+```typescript
+import { createAgent } from 'langchain';
+import { ChatAnthropic } from '@langchain/anthropic';
+import { tool } from '@langchain/core/tools';
+import { z } from 'zod';
+
+const getWeather = tool(async ({ city }) => `It's 22°C and clear in ${city}.`, {
+  name: 'get_weather',
+  description: 'Get current weather for a city',
+  schema: z.object({ city: z.string() }),
+});
+
+const agent = createAgent({
+  model: new ChatAnthropic({ model: 'claude-sonnet-4-6' }),
+  tools: [getWeather],
+});
+
+const result = await agent.invoke({
+  messages: [{ role: 'user', content: 'Weather in Bogotá?' }],
+});
+```
+
+The big 1.0 additions worth knowing now:
+
+- **Middleware** — fine-grained hooks at every step of the agent loop. Human-in-the-loop, summarization, and PII redaction ship built in. This is what replaced the old chain-composition mess.
+- **Structured output in the loop** — schema-constrained output is part of the main agent loop now, not a second LLM call. Lower latency, lower cost.
+- **600+ integrations** — models, vector stores, tools. This is still the real moat. You rarely write a provider client by hand.
+
+**Reach for LangChain when** the work is mostly linear: RAG pipelines, single-turn Q&A, "call a model with these tools," rapid prototyping.
+
+### LangGraph — the runtime when the loop gets weird
+
+LangGraph is the low-level engine: a `StateGraph` with nodes, edges, and — critically — **cycles**. Plus checkpointing, durable state, streaming, and time-travel debugging.
+
+LangChain agents _run on_ LangGraph internally. So you don't choose between them; you drop down to LangGraph when the default agent loop is the wrong shape.
+
+<Callout type="tip">
+  Rule of thumb: if your agent needs to loop, branch, retry on failure, pause for human approval, or
+  resume a session days later — that's a LangGraph job, not a plain chain.
+</Callout>
+
+```typescript
+import { StateGraph, START, END } from '@langchain/langgraph';
+
+const graph = new StateGraph(StateAnnotation)
+  .addNode('plan', planNode)
+  .addNode('act', actNode)
+  .addNode('review', reviewNode)
+  .addEdge(START, 'plan')
+  .addEdge('plan', 'act')
+  // cycle: review can send us back to act until the work passes
+  .addConditionalEdges('review', (s) => (s.approved ? END : 'act'))
+  .compile({ checkpointer });
+```
+
+That conditional edge looping back to `act` is the whole point. Chains can't do it; graphs can. 2026 is, in LangChain's own framing, "the year of stateful orchestration" — systems that reason across stages, recover from failure, and persist across sessions.
+
+### deepagents — the batteries-included harness
+
+`deepagents` (and `deepagentsjs` for TypeScript) is the newest layer. It's an opinionated harness for "deep" agents — the Claude-Code / Deep-Research shape: **plan before acting, spawn sub-agents, read/write a virtual filesystem, manage long context.**
+
+```typescript
+import { createDeepAgent } from 'deepagents';
+
+const agent = createDeepAgent({
+  tools: [searchTool, ...otherTools],
+  instructions: 'You are a research agent. Plan, then execute, then verify.',
+});
+// returns a compiled LangGraph graph — streaming, checkpointers, Studio all work
+```
+
+`createDeepAgent` returns a compiled LangGraph graph, so everything below it (streaming, checkpointers, LangGraph Studio) still applies. It just hands you the planning + delegation + filesystem scaffolding instead of making you wire it.
+
+The three-tier decision, top to bottom:
+
+| You want…                                        | Use             | Why                                     |
+| ------------------------------------------------ | --------------- | --------------------------------------- |
+| Full harness: planning, sub-agents, context mgmt | `deepagents`    | Batteries included, opinionated prompts |
+| A light agent loop with your own tools           | `createAgent`   | Minimal harness, you stay in control    |
+| A custom loop the default shape can't express    | raw `LangGraph` | Hand-built nodes, edges, and cycles     |
+
+### LangSmith — the part that makes it shippable
+
+The first three build the agent. **LangSmith is how you find out why it's misbehaving in production.** It traces every LLM call, tool invocation, and reasoning step, so you debug from data instead of guessing from logs.
+
+In 2026 it carries the observability _and_ the eval surface:
+
+- Traces with dashboards: token usage, latency (P50/P99), error rates, cost breakdowns, feedback scores.
+- **30+ eval templates** for safety, response quality, trajectory, and multimodal — usable for both offline experiments and online monitoring.
+- Capture production traces, **replay them against a new model version** to catch regressions before you deploy. Your prod behavior literally becomes your eval dataset.
+
+One naming gotcha that trips people up: **"LangGraph Platform" was renamed to "LangSmith Deployment" in October 2025.** Same managed runtime for shipping agents — Cloud, self-hosted, or standalone server. The CLI moved too: `langgraph deploy` superseded `langgraph up` for cloud deploys in March 2026.
+
+## How it fits a real product
+
+A production AI feature in 2026 usually touches all four:
+
+<Terminal
+  title="The stack on one request"
+  lines={[
+    { type: 'comment', content: 'A user asks your product a question' },
+    { type: 'text', content: 'LangChain    → ChatAnthropic + tools + vector store integrations' },
+    {
+      type: 'text',
+      content: 'LangGraph    → the stateful loop: plan → retrieve → answer → verify',
+    },
+    {
+      type: 'text',
+      content: 'deepagents   → (optional) planning + sub-agents for the hard, multi-step jobs',
+    },
+    { type: 'text', content: 'LangSmith    → traces every step, scores it, catches regressions' },
+    { type: 'success', content: 'Ship it via LangSmith Deployment (langgraph deploy)' },
+  ]}
+/>
+
+You don't adopt them in order of fame. You adopt them in order of _pain_: start with LangChain to get something working, drop to LangGraph the first time you need a loop or a pause, add LangSmith the first time something breaks in prod and you can't tell why, and pull in deepagents when the task is genuinely "research-grade" multi-step work.
+
+## What this series will build
+
+This was the map. Each following post is hands-on TypeScript, building one real thing:
+
+1. **The 2026 LangChain map** — _you are here._
+2. **`createAgent` + middleware** — a first real agent, and why middleware killed chain spaghetti.
+3. **LangGraph: stateful orchestration** — `StateGraph`, cycles, checkpointing, human-in-the-loop, durable resume.
+
+Three posts that take you from "what even is this ecosystem" to building real, stateful, resumable agents — enough to ship. (LangSmith observability/evals and deepagents are where you go next; Part 3 points the way.)
+
+<Callout type="info">
+  Next up — **Part 2: `createAgent` + middleware.** We stop drawing maps and start writing the agent
+  loop.
+</Callout>
