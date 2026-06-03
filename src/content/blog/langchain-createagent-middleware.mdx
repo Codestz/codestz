@@ -1,0 +1,224 @@
+---
+title: 'createAgent + Middleware: How LangChain 1.0 Killed Chain Spaghetti'
+description: 'Build a real support-triage agent with LangChain 1.0, then layer middleware — summarization, human-in-the-loop, PII redaction, and a custom guardrail — to get production control over the agent loop. Part 2 of a hands-on TypeScript series.'
+publishedAt: '2026-06-10'
+category: 'ai'
+tags: ['langchain', 'ai-agents', 'middleware', 'typescript', 'langchain-series']
+featured: true
+type: 'experiment'
+author: 'Esteban Estrada'
+thumbnail: '/images/blog/langchain-createagent-middleware.png'
+series: 'Building AI Products with LangChain'
+seriesOrder: 2
+---
+
+In [Part 1](/experiments/langchain-ecosystem-map-2026) we drew the map: LangGraph is the runtime, LangChain is the agent on top of it, LangSmith watches, deepagents is the heavy harness. Now we stop drawing and start building.
+
+The thing people remember about old LangChain is the **chain spaghetti** — `LCEL`, `RunnablePassthrough`, `RunnableMap`, pipes inside pipes, a `|` operator gluing together six abstractions to do "call the model, then maybe call a tool." It worked until you needed to do something _between_ the steps. Then you were monkey-patching the chain.
+
+LangChain 1.0 replaced all of that with two ideas: **`createAgent`** for the loop, and **middleware** for everything you used to hack into the loop. This post builds a support-triage agent and uses it to show why that swap matters.
+
+## The agent in 12 lines
+
+`createAgent` gives you a production-ready ReAct agent — reason, pick a tool, act, repeat — running on the LangGraph runtime under the hood.
+
+```typescript
+import { createAgent } from 'langchain';
+import { ChatAnthropic } from '@langchain/anthropic';
+import { tool } from '@langchain/core/tools';
+import { z } from 'zod';
+
+const lookupOrder = tool(
+  async ({ orderId }) => {
+    const order = await db.orders.find(orderId);
+    return order ? JSON.stringify(order) : `No order ${orderId}`;
+  },
+  {
+    name: 'lookup_order',
+    description: 'Look up an order by ID',
+    schema: z.object({ orderId: z.string() }),
+  }
+);
+
+const agent = createAgent({
+  model: new ChatAnthropic({ model: 'claude-sonnet-4-6' }),
+  tools: [lookupOrder],
+  prompt: 'You are a support agent. Be concise. Use tools before answering.',
+});
+
+const res = await agent.invoke({
+  messages: [{ role: 'user', content: "Where's order A-4471?" }],
+});
+console.log(res.messages.at(-1)?.content);
+```
+
+That's a working agent. No chain, no pipes. The interesting part is everything you'd want to bolt _onto_ this loop in production — and that's middleware.
+
+## The problem middleware solves
+
+Real support agents need things that aren't "the model" and aren't "a tool":
+
+- Conversations get long → context blows past the window.
+- A `refund` tool exists → you do **not** want it firing without a human nod.
+- Users paste emails and card numbers → that shouldn't hit your logs or the model provider.
+- You want every tool call logged and a hard ceiling on model calls so a loop can't bankrupt you.
+
+In old LangChain each of these meant restructuring the chain. In 1.0 they're entries in a `middleware: []` array.
+
+<Comparison
+  title="Same goal, two eras"
+  wrong="LCEL: wrap the runnable, splice a RunnableLambda before the model, thread state through a RunnableMap, re-pipe the whole chain. Every cross-cutting concern reshapes the pipeline."
+  right="1.0: agent stays 12 lines. Each concern is one middleware in the array. The loop is untouched; the behavior composes around it."
+  language="text"
+/>
+
+## Layering prebuilt middleware
+
+LangChain ships production-ready middleware. Four cover most of what a support agent needs:
+
+```typescript
+import { createAgent } from 'langchain';
+import {
+  summarizationMiddleware,
+  humanInTheLoopMiddleware,
+  piiMiddleware,
+  modelCallLimitMiddleware,
+} from 'langchain';
+import { ChatAnthropic } from '@langchain/anthropic';
+
+const agent = createAgent({
+  model: new ChatAnthropic({ model: 'claude-sonnet-4-6' }),
+  tools: [lookupOrder, issueRefund],
+  prompt: 'You are a support agent. Be concise.',
+  middleware: [
+    // 1. Keep long chats inside the context window
+    summarizationMiddleware({
+      model: new ChatAnthropic({ model: 'claude-haiku-4-5' }),
+      maxTokensBeforeSummary: 4000,
+    }),
+
+    // 2. Strip PII before it reaches the model or your traces
+    piiMiddleware({ patterns: ['email', 'credit_card'] }),
+
+    // 3. Pause for a human before any refund actually fires
+    humanInTheLoopMiddleware({
+      interruptOn: { issue_refund: true },
+    }),
+
+    // 4. Hard ceiling — a runaway loop can't make 200 model calls
+    modelCallLimitMiddleware({ maxCalls: 8 }),
+  ],
+});
+```
+
+Each of these is a one-liner that used to be a project. A few worth calling out:
+
+- **`summarizationMiddleware`** runs on the way _in_ to the model. Once messages cross the token threshold it summarizes the old ones with a cheap model (note: Haiku here, not Sonnet — you don't pay Sonnet rates to compress history) and keeps recent AI/Tool message pairs intact.
+- **`humanInTheLoopMiddleware`** runs _after_ the model proposes a tool call. If the model wants to call `issue_refund`, execution **pauses** instead of firing.
+- **`piiMiddleware`** redacts matched patterns so they never reach the provider or LangSmith traces.
+- **`modelCallLimitMiddleware`** is the seatbelt — a cyclic agent that misbehaves stops at 8 calls instead of looping forever.
+
+Other prebuilt ones you'll meet later in the series: `toolCallLimitMiddleware`, `modelFallbackMiddleware`, `toolRetryMiddleware`, `contextEditingMiddleware`, and the Deep Agents pair `createFilesystemMiddleware` / `createSubAgentMiddleware`.
+
+## Human-in-the-loop, concretely
+
+When the agent proposes a refund, `invoke` returns with an `__interrupt__` instead of a final answer. You surface that to a human, then resume with their decision.
+
+```typescript
+import { Command } from '@langchain/langgraph';
+
+const res = await agent.invoke(
+  { messages: [{ role: 'user', content: 'Refund order A-4471, it arrived broken.' }] },
+  { configurable: { thread_id: 'ticket-A-4471' } }
+);
+
+if (res.__interrupt__) {
+  // Agent paused before issue_refund — show the proposed call to a human
+  const decision = await askHuman(res.__interrupt__);
+
+  // Resume the SAME thread with approve / edit / reject
+  const final = await agent.invoke(
+    new Command({ resume: { type: 'approve' } }), // or 'edit' / 'reject'
+    { configurable: { thread_id: 'ticket-A-4471' } }
+  );
+}
+```
+
+<Callout type="warning">
+  Human-in-the-loop needs a `thread_id` and a checkpointer — that's the LangGraph runtime persisting
+  state so the conversation can survive the pause and resume exactly where it stopped. This is the
+  first place the runtime from Part 1 pokes through. We go deep on checkpointing in Part 3.
+</Callout>
+
+## Order matters: the middleware sandwich
+
+Multiple middleware aren't independent — they nest. On the way **in** to the model they run top-to-bottom; on the way **back out** they run bottom-to-top. It's a sandwich, not a queue.
+
+<Terminal
+  title="Execution order for the array above"
+  lines={[
+    { type: 'comment', content: 'IN  → toward the model (top to bottom)' },
+    { type: 'text', content: '  summarization.beforeModel   (compress history)' },
+    { type: 'text', content: '  pii.beforeModel             (redact)' },
+    { type: 'text', content: '  modelCallLimit.beforeModel  (check ceiling)' },
+    { type: 'success', content: '  >>> MODEL CALL <<<' },
+    { type: 'comment', content: 'OUT ← back from the model (bottom to top)' },
+    { type: 'text', content: '  humanInTheLoop.afterModel   (intercept tool call)' },
+  ]}
+/>
+
+Practical consequence: put **PII redaction before** anything that logs or calls out, and put **limits early** so you bail before doing expensive work. The array order _is_ the policy.
+
+## When prebuilt isn't enough: createMiddleware
+
+Eventually you need your own logic in the loop — a domain guardrail, custom logging, a tenant tag. That's `createMiddleware`. It takes a `name`, optional `stateSchema` / `tools`, and hooks:
+
+- **`beforeModel`** — before each model call (inspect/modify state, or short-circuit)
+- **`afterModel`** — after each model response
+- **`wrapModelCall`** — wrap the call itself (retries, fallbacks, swap the model/prompt/tools per call)
+- **`beforeAgent` / `afterAgent`** — once per invocation, at the edges
+
+A guardrail that blocks refunds over a threshold, plus lightweight tracing:
+
+```typescript
+import { createMiddleware } from 'langchain';
+import { z } from 'zod';
+
+const refundGuardrail = createMiddleware({
+  name: 'RefundGuardrail',
+  stateSchema: z.object({ refundCeiling: z.number().default(100) }),
+
+  afterModel: (state) => {
+    const last = state.messages.at(-1);
+    const calls = last?.tool_calls ?? [];
+
+    for (const call of calls) {
+      if (call.name === 'issue_refund' && call.args.amount > state.refundCeiling) {
+        // Cancel the tool call and force the model to escalate instead
+        return {
+          messages: [
+            {
+              role: 'tool',
+              tool_call_id: call.id,
+              content: `Refund $${call.args.amount} exceeds the $${state.refundCeiling} auto-limit. Escalate to a manager.`,
+            },
+          ],
+        };
+      }
+    }
+  },
+});
+```
+
+Drop `refundGuardrail` into the same `middleware: []` array and it composes with the prebuilt ones. No chain rewrite — that's the whole pitch. Your business rules live _next to_ the model call instead of tangled _through_ it.
+
+## What you've got now
+
+A support agent that compresses long chats, redacts PII, pauses for human approval on refunds, enforces a domain ceiling, and can't run away. Every one of those is a line in an array, and the core agent is still ~12 lines.
+
+But notice what we kept hand-waving: the `thread_id`, the checkpointer, "the runtime persists state so it can resume." That's not LangChain — that's **LangGraph** underneath, and it's where the real power of stateful, resumable, branching agents lives.
+
+<Callout type="info">
+  Next up — **Part 3: LangGraph and stateful orchestration.** We drop below `createAgent` into
+  `StateGraph`: nodes, cycles, checkpointing, and durable resume. The loop stops being a black box.
+</Callout>

@@ -17,6 +17,8 @@ export interface Post {
   readonly readTime: string;
   readonly content: string;
   readonly type: 'experience' | 'experiment';
+  readonly series?: string;
+  readonly seriesOrder?: number;
 }
 
 export interface Project {

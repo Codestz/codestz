@@ -10,6 +10,7 @@ export interface IPostRepository {
   findAll(): Promise<Result<readonly Post[]>>;
   findBySlug(slug: string): Promise<Result<Post | null>>;
   findByCategory(category: string): Promise<Result<readonly Post[]>>;
+  findBySeries(series: string): Promise<Result<readonly Post[]>>;
   findFeatured(limit?: number): Promise<Result<readonly Post[]>>;
 }
 

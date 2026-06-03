@@ -12,6 +12,7 @@ export interface IContentService {
   getPostBySlug(slug: string): Promise<Result<Post>>;
   getFeaturedPosts(limit?: number): Promise<Result<readonly Post[]>>;
   getPostsByCategory(category: string): Promise<Result<readonly Post[]>>;
+  getPostsBySeries(series: string): Promise<Result<readonly Post[]>>;
 
   // Project operations
   getAllProjects(): Promise<Result<readonly Project[]>>;

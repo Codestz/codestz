@@ -56,6 +56,17 @@ class ContentService implements IContentService {
     return await contentRepository.posts.findByCategory(category);
   }
 
+  async getPostsBySeries(series: string): Promise<Result<readonly Post[]>> {
+    if (!series || series.trim() === '') {
+      return {
+        success: false,
+        error: new Error('Series is required'),
+      };
+    }
+
+    return await contentRepository.posts.findBySeries(series);
+  }
+
   // Project operations
 
   async getAllProjects(): Promise<Result<readonly Project[]>> {
