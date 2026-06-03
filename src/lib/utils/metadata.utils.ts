@@ -18,18 +18,18 @@ export interface PageMetadataProps {
   tags?: readonly string[];
 }
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://codestz.dev';
-const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://codestz.dev';
 
 /**
- * Generate comprehensive metadata for a page
+ * Generate comprehensive metadata for a page.
+ * When `image` is omitted, OG/Twitter images are left unset so Next.js falls
+ * back to the nearest file-convention `opengraph-image` (dynamically generated).
  */
 export function generatePageMetadata({
   title,
   description = APP_CONFIG.description,
   path = '',
-  image = DEFAULT_OG_IMAGE,
+  image,
   type = 'website',
   publishedTime,
   modifiedTime,
@@ -66,14 +66,18 @@ export function generatePageMetadata({
       description,
       url,
       siteName: APP_CONFIG.name,
-      images: [
-        {
-          url: image,
-          width: 1200,
-          height: 630,
-          alt: title || APP_CONFIG.title,
-        },
-      ],
+      ...(image
+        ? {
+            images: [
+              {
+                url: image,
+                width: 1200,
+                height: 630,
+                alt: title || APP_CONFIG.title,
+              },
+            ],
+          }
+        : {}),
       locale: 'en_US',
       type,
       ...(type === 'article' && publishedTime
@@ -89,7 +93,7 @@ export function generatePageMetadata({
       card: 'summary_large_image',
       title: fullTitle,
       description,
-      images: [image],
+      ...(image ? { images: [image] } : {}),
       creator: '@estebanestrada',
     },
     robots: {
@@ -130,7 +134,7 @@ export function generateBlogPostMetadata({
     title,
     description,
     path: `/experiments/${slug}`,
-    image: thumbnail || DEFAULT_OG_IMAGE,
+    image: thumbnail,
     type: 'article',
     publishedTime: publishedAt,
     modifiedTime: updatedAt,
@@ -158,7 +162,7 @@ export function generateProjectMetadata({
     title,
     description,
     path: `/experience/${slug}`,
-    image: thumbnail || DEFAULT_OG_IMAGE,
+    image: thumbnail,
     tags: technologies,
   });
 }

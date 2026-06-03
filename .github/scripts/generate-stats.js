@@ -9,6 +9,9 @@ const USERNAME = 'Codestz';
 const PURPLE = '#7c3aed';
 const TOKEN = process.env.GITHUB_TOKEN;
 
+// Featured repos rendered as standalone cards (stars/forks auto-refreshed)
+const FEATURED_REPOS = ['claude-hindsight'];
+
 if (!TOKEN) {
   console.error('GITHUB_TOKEN is required');
   process.exit(1);
@@ -67,6 +70,19 @@ async function fetchStats() {
     }
   }`);
   return data.user;
+}
+
+async function fetchRepo(name) {
+  const { data } = await githubAPI(`{
+    repository(owner: "${USERNAME}", name: "${name}") {
+      name
+      description
+      stargazerCount
+      forkCount
+      primaryLanguage { name color }
+    }
+  }`);
+  return data.repository;
 }
 
 function calculateStreak(weeks) {
@@ -340,6 +356,73 @@ function generateContributionGraphSVG(weeks, theme) {
 </svg>`;
 }
 
+function escapeXml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function wrapText(text, maxChars, maxLines) {
+  const words = String(text || '')
+    .split(/\s+/)
+    .filter(Boolean);
+  const all = [];
+  let line = '';
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (candidate.length > maxChars && line) {
+      all.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) all.push(line);
+  if (all.length <= maxLines) return all;
+
+  const kept = all.slice(0, maxLines);
+  const last = kept[maxLines - 1];
+  kept[maxLines - 1] = (last.length > maxChars - 1 ? last.slice(0, maxChars - 1) : last) + '…';
+  return kept;
+}
+
+function generateRepoCardSVG(repo, theme) {
+  const isDark = theme === 'dark';
+  const textColor = isDark ? '#c9d1d9' : '#333333';
+  const subColor = isDark ? '#888888' : '#666666';
+  const lang = repo.primaryLanguage;
+  const descLines = wrapText(repo.description, 52, 2);
+
+  const descSvg = descLines
+    .map(
+      (l, i) =>
+        `<text x="25" y="${66 + i * 20}" fill="${subColor}" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">${escapeXml(l)}</text>`
+    )
+    .join('\n  ');
+
+  const footerY = 66 + descLines.length * 20 + 18;
+
+  const langSvg = lang
+    ? `<circle cx="29" cy="${footerY - 4}" r="6" fill="${lang.color || PURPLE}"/>
+  <text x="42" y="${footerY}" fill="${textColor}" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">${escapeXml(lang.name)}</text>`
+    : '';
+
+  const height = footerY + 20;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="${height}" viewBox="0 0 400 ${height}">
+  <rect x="2" y="2" width="396" height="${height - 4}" fill="none" stroke="${PURPLE}" stroke-width="3"/>
+  <svg x="21" y="20" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${PURPLE}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+  </svg>
+  <text x="48" y="34" fill="${PURPLE}" font-size="17" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">${escapeXml(repo.name)}</text>
+  ${descSvg}
+  ${langSvg}
+  <text x="300" y="${footerY}" fill="${textColor}" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">★ ${repo.stargazerCount.toLocaleString()}</text>
+  <text x="350" y="${footerY}" fill="${textColor}" font-size="13" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">⑂ ${repo.forkCount.toLocaleString()}</text>
+</svg>`;
+}
+
 async function main() {
   console.log('Fetching GitHub stats...');
   const stats = await fetchStats();
@@ -372,6 +455,25 @@ async function main() {
       generateContributionGraphSVG(weeks, theme)
     );
     console.log(`Generated ${theme} theme SVGs`);
+  }
+
+  for (const name of FEATURED_REPOS) {
+    try {
+      const repo = await fetchRepo(name);
+      if (!repo) {
+        console.log(`Repo ${name} not found, skipping card`);
+        continue;
+      }
+      for (const theme of ['dark', 'light']) {
+        fs.writeFileSync(
+          path.join(outDir, `repo-${name}-${theme}.svg`),
+          generateRepoCardSVG(repo, theme)
+        );
+      }
+      console.log(`Generated repo card for ${name}`);
+    } catch (err) {
+      console.log(`Failed to generate card for ${name}: ${err.message}`);
+    }
   }
 
   console.log('Done! SVGs written to public/stats/');

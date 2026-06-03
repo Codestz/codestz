@@ -2,15 +2,10 @@ import { MetadataRoute } from 'next';
 import { contentService } from '@/lib/services';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://estebanestrada.dev'; // Update with your actual domain
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://codestz.dev';
 
   // Static routes
-  const routes = [
-    '',
-    '/about',
-    '/experiments',
-    '/experience',
-  ].map((route) => ({
+  const routes = ['', '/about', '/experiments', '/experience'].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString(),
     changeFrequency: 'weekly' as const,

@@ -5,12 +5,13 @@ import Image from 'next/image';
 import { Section } from '@/components/sections';
 import { Button, Badge } from '@/components/ui';
 import { ReadingProgressBar, SeriesNav, SeriesPager } from '@/components/blog';
+import { JsonLd } from '@/components/seo';
 import { contentService } from '@/lib/services';
 import { ROUTES } from '@/lib/constants';
 import type { Metadata } from 'next';
 import remarkGfm from 'remark-gfm';
 import { mdxComponents } from '../../../../mdx-components';
-import { generateBlogPostMetadata, formatDate } from '@/lib/utils';
+import { generateBlogPostMetadata, formatDate, articleJsonLd } from '@/lib/utils';
 import type { BlogPostPageProps } from './page.types';
 
 /**
@@ -72,6 +73,8 @@ export default async function ExperimentPage({ params }: BlogPostPageProps) {
 
   return (
     <main>
+      <JsonLd data={articleJsonLd(post)} />
+
       {/* Reading Progress Bar */}
       <ReadingProgressBar />
 

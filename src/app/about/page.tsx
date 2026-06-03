@@ -14,7 +14,8 @@ import { generatePageMetadata } from '@/lib/utils';
  */
 export const metadata = generatePageMetadata({
   title: 'About Me',
-  description: 'Software Engineer II specializing in AI integration, full-stack development, and performance optimization. Based in Medellín, Colombia.',
+  description:
+    'Senior Software Engineer specializing in AI integration, full-stack development, and performance optimization. Based in Medellín, Colombia.',
   path: '/about',
 });
 

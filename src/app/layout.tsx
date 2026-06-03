@@ -4,7 +4,9 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from '@/components/providers';
 import { Header, Footer } from '@/components/layout';
+import { JsonLd } from '@/components/seo';
 import { APP_CONFIG } from '@/lib/constants';
+import { personJsonLd, websiteJsonLd } from '@/lib/utils';
 import './globals.css';
 
 // Syne for headings (bold)
@@ -24,6 +26,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://codestz.dev'),
   title: APP_CONFIG.title,
   description: APP_CONFIG.description,
   icons: {
@@ -43,6 +46,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <JsonLd data={personJsonLd()} />
+        <JsonLd data={websiteJsonLd()} />
+      </head>
       <body className={`${spaceMono.variable} ${syne.variable} font-mono grid-bg min-h-screen`}>
         <ThemeProvider>
           <Header />

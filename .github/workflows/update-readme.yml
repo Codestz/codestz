@@ -40,17 +40,32 @@ jobs:
 
             try {
               const rss = await fetchRSS('https://codestz.dev/feed');
-              const items = [...rss.matchAll(/<item>[\s\S]*?<title>(.*?)<\/title>[\s\S]*?<link>(.*?)<\/link>[\s\S]*?<\/item>/g)];
+              const items = [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)];
 
               if (items.length === 0) {
                 console.log('No items found in RSS feed, skipping update');
                 return;
               }
 
-              const posts = items.slice(0, 7).map(match => {
-                const title = match[1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'");
-                const link = match[2];
-                return `- [${title}](${link})`;
+              const decode = (s) => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'");
+              const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+              const posts = items.slice(0, 7).map(([, block]) => {
+                const grab = (tag) => (block.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`)) || [])[1] || '';
+                const title = decode(grab('title').trim());
+                const link = grab('link').trim();
+                const pubDate = grab('pubDate').trim();
+                const readingTime = decode(grab('blog:readingTime').trim());
+
+                const meta = [];
+                if (pubDate) {
+                  const d = new Date(pubDate);
+                  if (!isNaN(d)) meta.push(`${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`);
+                }
+                if (readingTime) meta.push(readingTime.replace(/ read$/, ''));
+
+                const suffix = meta.length ? ` — ${meta.join(' · ')}` : '';
+                return `- [${title}](${link})${suffix}`;
               }).join('\n');
 
               const readme = fs.readFileSync('README.md', 'utf8');
