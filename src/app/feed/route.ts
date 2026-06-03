@@ -25,13 +25,14 @@ export async function GET() {
       <description>${escapeXml(post.description)}</description>
       <pubDate>${new Date(post.publishedAt).toUTCString()}</pubDate>
       <author>${escapeXml(APP_CONFIG.author.email)} (${escapeXml(APP_CONFIG.author.name)})</author>
+      <blog:readingTime>${escapeXml(post.readTime)}</blog:readingTime>
       ${post.tags.map((tag) => `<category>${escapeXml(tag)}</category>`).join('\n      ')}
     </item>`
     )
     .join('\n');
 
   const rss = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:blog="https://codestz.dev/ns/blog">
   <channel>
     <title>${escapeXml(APP_CONFIG.name)} - Blog</title>
     <link>${SITE_URL}</link>

@@ -86,6 +86,18 @@ I build developer tools that make AI agents smarter.
 
 ---
 
+### Featured Project
+
+<a href="https://github.com/Codestz/claude-hindsight">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./public/stats/repo-claude-hindsight-dark.svg"/>
+  <source media="(prefers-color-scheme: light)" srcset="./public/stats/repo-claude-hindsight-light.svg"/>
+  <img src="./public/stats/repo-claude-hindsight-dark.svg" alt="claude-hindsight"/>
+</picture>
+</a>
+
+---
+
 ### Projects
 
 [**krait**](https://github.com/Codestz/krait) -- Code intelligence CLI for AI agents. LSP-backed symbol search, semantic editing, and diagnostics in a single Rust binary. `rust`
@@ -107,6 +119,7 @@ I build developer tools that make AI agents smarter.
 > I write about AI-driven development, MCP integrations, and developer tooling at **[codestz.dev](https://codestz.dev)**
 
 <!-- BLOG-POST-LIST:START -->
+
 - [Stop Vibe Coding. Start Vibe Engineering.](https://codestz.dev/experiments/stop-vibe-coding-start-vibe-engineering)
 - [Stop Loading 100K Tokens Just to Call a Tool: Why I Built MCPX](https://codestz.dev/experiments/mcpx-mcp-gateway)
 - [The AI Convergence: Why Every Coding Tool Lands on the Same Two Defaults](https://codestz.dev/experiments/why-ai-defaults-to-typescript)
