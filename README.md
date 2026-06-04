@@ -119,14 +119,13 @@ I build developer tools that make AI agents smarter.
 > I write about AI-driven development, MCP integrations, and developer tooling at **[codestz.dev](https://codestz.dev)**
 
 <!-- BLOG-POST-LIST:START -->
-
-- [Stop Vibe Coding. Start Vibe Engineering.](https://codestz.dev/experiments/stop-vibe-coding-start-vibe-engineering)
-- [Stop Loading 100K Tokens Just to Call a Tool: Why I Built MCPX](https://codestz.dev/experiments/mcpx-mcp-gateway)
-- [The AI Convergence: Why Every Coding Tool Lands on the Same Two Defaults](https://codestz.dev/experiments/why-ai-defaults-to-typescript)
-- [MCP Is a Crutch: Why CLI Tools Are the Future of AI Agent Tooling](https://codestz.dev/experiments/mcpx-cli-over-mcp)
-- [SPARC: The Methodology That Turns Vibe Coding Into Actual Engineering](https://codestz.dev/experiments/sparc-methodology-ai-development)
-- [Spec-Driven Development: Why Writing Specs Before Code Is the Next Paradigm Shift](https://codestz.dev/experiments/spec-driven-development-tessl)
-- [RTK: The Rust Binary That Slashed My Claude Code Token Usage by 70%](https://codestz.dev/experiments/rtk-rust-token-killer)
+- [LangGraph: When the Agent Loop Becomes a State Machine](https://codestz.dev/experiments/langgraph-stateful-orchestration) — Jun 2026 · 8 min
+- [createAgent + Middleware: How LangChain 1.0 Killed Chain Spaghetti](https://codestz.dev/experiments/langchain-createagent-middleware) — Jun 2026 · 7 min
+- [The 2026 LangChain Map: LangChain vs LangGraph vs LangSmith vs deepagents](https://codestz.dev/experiments/langchain-ecosystem-map-2026) — Jun 2026 · 7 min
+- [Stop Vibe Coding. Start Vibe Engineering.](https://codestz.dev/experiments/stop-vibe-coding-start-vibe-engineering) — May 2026 · 21 min
+- [Stop Loading 100K Tokens Just to Call a Tool: Why I Built MCPX](https://codestz.dev/experiments/mcpx-mcp-gateway) — Mar 2026 · 17 min
+- [The AI Convergence: Why Every Coding Tool Lands on the Same Two Defaults](https://codestz.dev/experiments/why-ai-defaults-to-typescript) — Mar 2026 · 17 min
+- [MCP Is a Crutch: Why CLI Tools Are the Future of AI Agent Tooling](https://codestz.dev/experiments/mcpx-cli-over-mcp) — Mar 2026 · 10 min
 <!-- BLOG-POST-LIST:END -->
 
 ---
