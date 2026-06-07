@@ -3,13 +3,15 @@ import { contentService } from '@/lib/services';
 
 export async function GET() {
   try {
-    const [postsResult, projectsResult] = await Promise.all([
+    const [postsResult, projectsResult, showcaseResult] = await Promise.all([
       contentService.getAllPosts(),
       contentService.getAllProjects(),
+      contentService.getAllShowcase(),
     ]);
 
     const posts = postsResult.success ? Array.from(postsResult.data) : [];
     const projects = projectsResult.success ? Array.from(projectsResult.data) : [];
+    const showcase = showcaseResult.success ? Array.from(showcaseResult.data) : [];
 
     const searchContent = [
       ...posts.map((post) => ({
@@ -29,6 +31,15 @@ export async function GET() {
         category: 'category' in project ? project.category : 'project',
         tags: 'tags' in project ? project.tags : [],
         url: `/experience/${project.slug}`,
+      })),
+      ...showcase.map((project) => ({
+        type: 'showcase' as const,
+        slug: project.slug,
+        title: project.title,
+        description: project.description,
+        category: 'project',
+        tags: project.technologies,
+        url: `/projects/${project.slug}`,
       })),
     ];
 

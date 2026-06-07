@@ -1,0 +1,34 @@
+name: Update showcase stars/forks
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # every 6 hours
+  push:
+    paths:
+      - 'src/content/showcase/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Refresh stars/forks from GitHub API
+        run: node .github/scripts/update-showcase-stats.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit updated frontmatter
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add src/content/showcase/
+          git diff --cached --quiet || (git commit -m "chore: refresh showcase stars/forks" && git push)

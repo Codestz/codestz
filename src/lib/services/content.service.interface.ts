@@ -1,4 +1,4 @@
-import { Post, Project, Result } from '@/lib/types';
+import { Post, Project, ShowcaseProject, Result } from '@/lib/types';
 
 /**
  * Content Service Interface
@@ -19,6 +19,11 @@ export interface IContentService {
   getProjectBySlug(slug: string): Promise<Result<Project>>;
   getFeaturedProjects(limit?: number): Promise<Result<readonly Project[]>>;
   getProjectsByTechnology(tech: string): Promise<Result<readonly Project[]>>;
+
+  // Showcase operations
+  getAllShowcase(): Promise<Result<readonly ShowcaseProject[]>>;
+  getShowcaseBySlug(slug: string): Promise<Result<ShowcaseProject>>;
+  getFeaturedShowcase(limit?: number): Promise<Result<readonly ShowcaseProject[]>>;
 
   // Metadata operations
   getAllCategories(): Promise<Result<readonly string[]>>;

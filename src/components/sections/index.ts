@@ -7,6 +7,7 @@ export { Section } from './Section';
 export { AnimatedSection } from './AnimatedSection';
 export { FilterBar } from './FilterBar';
 export { ExperimentsGrid } from './ExperimentsGrid';
+export { ShowcaseGrid } from './ShowcaseGrid';
 export { AboutMeSection } from './AboutMeSection';
 export { LetsConnectSection } from './LetsConnectSection';
 export { SlotMachine } from './SlotMachine';

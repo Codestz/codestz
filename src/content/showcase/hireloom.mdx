@@ -1,0 +1,127 @@
+---
+title: 'Hireloom'
+description: 'A private, local-first résumé builder with on-device AI. Build on a real canvas, tailor to any job, and export ATS-safe PDFs — entirely in your browser. No account, no servers.'
+publishedAt: '2026-05-20'
+repo: 'Codestz/hireloom'
+thumbnail: '/images/blog/hireloom.png'
+liveUrl: 'https://hireloom.codestz.dev'
+technologies:
+  [
+    'TypeScript',
+    'TanStack Start',
+    'React 19',
+    'Dexie / IndexedDB',
+    'Tailwind v4',
+    'Gemini Nano',
+    'pdfmake',
+    'PWA',
+  ]
+language: 'TypeScript'
+stars: 0
+forks: 0
+status: 'active'
+featured: true
+---
+
+## A résumé you actually own
+
+Your résumé is the most personal professional document you have — and almost every tool that helps you build one wants the same thing in return: an account, an upload, your work history sitting on someone else's server, and a paywall the moment you want the PDF.
+
+Hireloom is the opposite. It runs **entirely in your browser**. Your data lives in IndexedDB, the AI runs on your device, and the PDF is rendered client-side. There is no backend to leak, sell, or shut down.
+
+<Callout type="quote" author="Esteban Estrada" role="Creator">
+  Your resume should be a file you own — editable anywhere, private by default, yours forever.
+</Callout>
+
+<StatBlock
+  title="At a glance"
+  stats={[
+    { value: '0', label: 'Servers your data touches', icon: 'ShieldCheck' },
+    { value: '100%', label: 'On-device (IndexedDB)', icon: 'HardDrive' },
+    { value: 'ATS', label: 'Parse-safe PDF export', icon: 'FileCheck' },
+    { value: 'PWA', label: 'Installable & offline', icon: 'WifiOff' },
+  ]}
+/>
+
+## The problem
+
+Maintaining a résumé in 2026 means handing your career history to a SaaS tool, then paying to get a PDF back out. Tailoring it to a job is worse — you paste private work history into a third-party LLM with no idea where it lands.
+
+Both problems come from the same root cause: **the app has a server.** Remove the server and the privacy problem disappears by construction, not by policy.
+
+## How it works
+
+<ProcessFlow
+  title="From blank canvas to ATS-safe PDF"
+  steps={[
+    {
+      title: 'Build on a block canvas',
+      description:
+        'A block-based editor with inline editing, drag-to-reorder, live preview, and real templates — single column, two-column, header band.',
+      icon: 'LayoutTemplate',
+    },
+    {
+      title: 'Improve with on-device AI',
+      description:
+        'Chrome’s built-in Gemini Nano rewrites bullets, drafts summaries, mines skills, and lets you chat with your résumé — no key, no cloud, no telemetry.',
+      icon: 'Sparkles',
+    },
+    {
+      title: 'Tailor to a job',
+      description:
+        'A deterministic, on-device keyword match scores your CV against any job post, shows what’s missing, and one-click tailors your summary to lift the score.',
+      icon: 'Target',
+    },
+    {
+      title: 'Export ATS-safe',
+      description:
+        'A true text layout (not a screenshot) — selectable, parse-safe, the same recipe behind a résumé that has passed every ATS thrown at it.',
+      icon: 'FileDown',
+    },
+  ]}
+/>
+
+## Private by architecture, not by promise
+
+The key design decision: **everything runs client-side.** Résumés live in your browser's IndexedDB (via Dexie). The AI uses Chrome's built-in Prompt API (Gemini Nano) — and if you don't have on-device AI, you bring your own Gemini key, stored only in your browser. The engine is pluggable, so Anthropic and others are a single adapter away.
+
+<Callout type="info">
+  Don't want any AI? Editing, ATS keyword match, PDF/JSON export, and JSON/LinkedIn import all work
+  with no AI at all. The AI is additive, never required.
+</Callout>
+
+## Features at a glance
+
+| Area          | What you get                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| **Editor**    | Block canvas, inline editing, reorder, live preview, zoom                                              |
+| **Templates** | Single / two-column / header-band · fonts · density · accent color                                     |
+| **AI**        | Inline improve / shorten / expand / grammar · summary · skills · cover letter · CV chat · tailor-to-JD |
+| **ATS**       | Deterministic keyword match + gap analysis + score-lift tailoring                                      |
+| **Import**    | Any résumé PDF (AI-structured) · LinkedIn "Save to PDF" · JSON Resume                                  |
+| **Export**    | ATS-safe PDF (embedded fonts) · JSON Resume                                                            |
+| **Data**      | 100% local (IndexedDB) · one-click backup / restore · installable offline PWA                          |
+
+## Run it locally
+
+<Terminal
+  title="hireloom"
+  lines={[
+    { type: 'comment', content: 'Requires Node 22+ and pnpm' },
+    { type: 'input', content: 'pnpm install' },
+    { type: 'input', content: 'pnpm dev' },
+    { type: 'success', content: '→ http://localhost:3000' },
+    { type: 'divider', content: '' },
+    { type: 'comment', content: 'Optional: enable on-device AI in Chrome 128+' },
+    { type: 'input', content: 'chrome://flags/#prompt-api-for-gemini-nano  → Enabled' },
+    { type: 'output', content: 'Downloads Gemini Nano (~2–4 GB) once, then runs fully offline.' },
+  ]}
+/>
+
+## Built with
+
+A declarative **block model over the [JSON Resume](https://jsonresume.org/) schema**, rendered with TanStack Start (React 19 · Vite), TanStack Router & Query, Dexie/IndexedDB for storage, Tailwind CSS v4 for styling, Zod for validation, and pdfmake + pdf.js for true-text PDF in and out. Licensed AGPL-3.0 — free and open.
+
+## Status
+
+Active and live at [hireloom.codestz.dev](https://hireloom.codestz.dev). The roadmap leans into the pluggable AI engine (more providers), richer templates, and deeper ATS gap analysis.

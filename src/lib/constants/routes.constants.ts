@@ -15,15 +15,15 @@ export const ROUTES = {
     index: '/experience',
     detail: (slug: string) => `/experience/${slug}`,
   },
+  projects: {
+    index: '/projects',
+    detail: (slug: string) => `/projects/${slug}`,
+  },
   // Legacy aliases for backwards compatibility
   blog: {
     index: '/experiments',
     post: (slug: string) => `/experiments/${slug}`,
     category: (category: string) => `/experiments/category/${category}`,
-  },
-  projects: {
-    index: '/experience',
-    detail: (slug: string) => `/experience/${slug}`,
   },
 } as const;
 

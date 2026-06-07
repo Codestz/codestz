@@ -5,7 +5,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://codestz.dev';
 
   // Static routes
-  const routes = ['', '/about', '/experiments', '/experience'].map((route) => ({
+  const routes = ['', '/about', '/experiments', '/projects', '/experience'].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString(),
     changeFrequency: 'weekly' as const,
@@ -32,5 +32,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...routes, ...postRoutes, ...projectRoutes];
+  // Showcase / GitHub projects
+  const showcaseResult = await contentService.getAllShowcase();
+  const showcase = showcaseResult.success ? Array.from(showcaseResult.data) : [];
+  const showcaseRoutes = showcase.map((project) => ({
+    url: `${baseUrl}/projects/${project.slug}`,
+    lastModified: project.publishedAt,
+    changeFrequency: 'monthly' as const,
+    priority: project.featured ? 0.9 : 0.7,
+  }));
+
+  return [...routes, ...postRoutes, ...projectRoutes, ...showcaseRoutes];
 }

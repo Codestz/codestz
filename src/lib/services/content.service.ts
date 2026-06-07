@@ -1,4 +1,4 @@
-import { Post, Project, Result } from '@/lib/types';
+import { Post, Project, ShowcaseProject, Result } from '@/lib/types';
 import { contentRepository } from '@/lib/repositories';
 import { CONTENT_CONFIG } from '@/lib/constants';
 import type { IContentService } from './content.service.interface';
@@ -111,6 +111,41 @@ class ContentService implements IContentService {
     }
 
     return await contentRepository.projects.findByTechnology(tech);
+  }
+
+  // Showcase operations
+
+  async getAllShowcase(): Promise<Result<readonly ShowcaseProject[]>> {
+    return await contentRepository.showcase.findAll();
+  }
+
+  async getShowcaseBySlug(slug: string): Promise<Result<ShowcaseProject>> {
+    if (!slug || slug.trim() === '') {
+      return {
+        success: false,
+        error: new Error('Showcase slug is required'),
+      };
+    }
+
+    const result = await contentRepository.showcase.findBySlug(slug);
+
+    if (!result.success) {
+      return result;
+    }
+
+    if (!result.data) {
+      return {
+        success: false,
+        error: new Error(`Showcase project not found: ${slug}`),
+      };
+    }
+
+    return { success: true, data: result.data };
+  }
+
+  async getFeaturedShowcase(limit?: number): Promise<Result<readonly ShowcaseProject[]>> {
+    const effectiveLimit = limit ?? CONTENT_CONFIG.featuredShowcaseLimit;
+    return await contentRepository.showcase.findFeatured(effectiveLimit);
   }
 
   // Metadata operations
