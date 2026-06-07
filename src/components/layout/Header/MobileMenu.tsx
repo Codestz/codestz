@@ -22,6 +22,7 @@ export function MobileMenu({ className }: MobileMenuProps) {
   const navItems = [
     { href: '/', label: 'Home' },
     { href: '/experiments', label: 'Experiments' },
+    { href: '/projects', label: 'Projects' },
     { href: '/experience', label: 'Experience' },
     { href: '/about', label: 'About' },
   ];
@@ -46,17 +47,19 @@ export function MobileMenu({ className }: MobileMenuProps) {
         overlayRef.current,
         { opacity: 0 },
         { opacity: 1, duration: 0.2, ease: 'power2.out' }
-      ).fromTo(
-        menuRef.current,
-        { x: '100%' },
-        { x: '0%', duration: 0.3, ease: 'power2.out' },
-        '-=0.1'
-      ).fromTo(
-        navItemsRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out' },
-        '-=0.2'
-      );
+      )
+        .fromTo(
+          menuRef.current,
+          { x: '100%' },
+          { x: '0%', duration: 0.3, ease: 'power2.out' },
+          '-=0.1'
+        )
+        .fromTo(
+          navItemsRef.current,
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out' },
+          '-=0.2'
+        );
     } else {
       // Re-enable body scroll
       document.body.style.overflow = '';
@@ -71,16 +74,8 @@ export function MobileMenu({ className }: MobileMenuProps) {
           stagger: 0.03,
           ease: 'power2.in',
         })
-          .to(
-            menuRef.current,
-            { x: '100%', duration: 0.3, ease: 'power2.in' },
-            '-=0.1'
-          )
-          .to(
-            overlayRef.current,
-            { opacity: 0, duration: 0.2, ease: 'power2.in' },
-            '-=0.2'
-          );
+          .to(menuRef.current, { x: '100%', duration: 0.3, ease: 'power2.in' }, '-=0.1')
+          .to(overlayRef.current, { opacity: 0, duration: 0.2, ease: 'power2.in' }, '-=0.2');
       }
     }
 

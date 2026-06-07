@@ -166,3 +166,28 @@ export function generateProjectMetadata({
     tags: technologies,
   });
 }
+
+/**
+ * Generate metadata for showcase project pages
+ */
+export function generateShowcaseMetadata({
+  title,
+  description,
+  slug,
+  thumbnail,
+  technologies = [],
+}: {
+  title: string;
+  description: string;
+  slug: string;
+  thumbnail?: string;
+  technologies?: readonly string[];
+}): Metadata {
+  return generatePageMetadata({
+    title,
+    description,
+    path: `/projects/${slug}`,
+    image: thumbnail,
+    tags: technologies,
+  });
+}

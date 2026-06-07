@@ -1,0 +1,109 @@
+---
+title: 'Claude Hindsight'
+description: 'Observability for Claude Code. Parses the raw JSONL transcripts Claude writes to disk and turns them into a full web dashboard — tool calls, costs, errors, and a 3D execution graph, all from a single zero-dependency binary.'
+publishedAt: '2026-04-10'
+repo: 'Codestz/claude-hindsight'
+thumbnail: '/images/blog/claude-hindsight.png'
+liveUrl: 'https://codestz.github.io/claude-hindsight/'
+technologies: ['Rust', 'TypeScript', 'Astro', 'SSE', 'WebGL', 'Claude Code']
+language: 'Rust'
+stars: 19
+forks: 2
+status: 'active'
+featured: true
+---
+
+## 20/20 hindsight for your Claude Code sessions
+
+When an agent session goes sideways, the answer is already on disk — Claude Code logs every session as JSONL: tool calls, thinking blocks, token usage, timing. But raw JSONL is unreadable. Claude Hindsight parses those transcripts and turns them into a **full-featured web dashboard**, real-time streaming, and deep analytics — all from a single binary with zero external dependencies.
+
+<StatBlock
+  title="What it surfaces"
+  stats={[
+    { value: '1', label: 'Static binary, no deps' },
+    { value: '3D', label: 'Force-directed graph' },
+    { value: 'SSE', label: 'Live streaming' },
+    { value: '$', label: 'Model-aware costs' },
+  ]}
+/>
+
+## Why Hindsight
+
+<ProcessFlow
+  title="From opaque session to clear insight"
+  steps={[
+    {
+      title: 'Understand what happened',
+      description:
+        'Browse every tool call, thinking block, and assistant message in a two-panel inspector with markdown, syntax highlighting, and diff views.',
+    },
+    {
+      title: 'Spot problems fast',
+      description:
+        'Errors are highlighted, filterable, and linked straight to their source nodes — no scrolling thousands of JSONL lines.',
+    },
+    {
+      title: 'Track costs',
+      description:
+        'Model-aware per-session and per-turn cost breakdowns from JSONL, with optional OpenTelemetry for real-time tracking.',
+    },
+    {
+      title: 'Visualize execution',
+      description:
+        'An interactive 3D force-directed graph shows how nodes relate — colored by type, sized by importance, click-to-inspect.',
+    },
+  ]}
+/>
+
+## Quick start
+
+<Terminal
+  title="claude-hindsight"
+  lines={[
+    { type: 'input', prompt: '$', content: 'claude-hindsight init' },
+    { type: 'output', content: 'Discovered sessions & built index' },
+    { type: 'input', prompt: '$', content: 'claude-hindsight integrate' },
+    { type: 'output', content: 'Installed Claude Code hooks for auto-indexing' },
+    { type: 'input', prompt: '$', content: 'claude-hindsight serve --open' },
+    { type: 'success', content: 'Dashboard live → http://localhost:7227' },
+  ]}
+/>
+
+## Inside the dashboard
+
+The dashboard is the primary interface, and it goes deep:
+
+- **Dashboard** — global overview with an activity sparkline, KPI cards (sessions, projects, cost, errors), top tools, cost by model, most-accessed files, and MCP server usage.
+- **Session Inspector** — a two-panel resizable layout: a flat execution list with color-coded node types and error indicators on the left; full node detail (markdown, syntax-highlighted code, diffs, image previews, token usage) on the right.
+- **3D Execution Graph** — a force-directed visualization with bloom post-processing and a starfield background. Nodes colored by type, sized by importance.
+- **Live Streaming** — SSE-powered real-time updates; watch nodes appear as Claude works.
+
+<Callout type="tip">
+  Run `claude-hindsight integrate` once and lifecycle hooks auto-index sessions in real time. All
+  hooks run async — zero impact on Claude Code performance.
+</Callout>
+
+## Why Rust
+
+Transcripts get large, and parsing should never be the bottleneck between you and the answer. The engine is written in **Rust** for speed, and the web dashboard is **embedded directly in the binary** — so the pre-built releases have no runtime dependencies at all. Install, run, open the browser.
+
+## Install
+
+<Terminal
+  title="install"
+  lines={[
+    { type: 'comment', content: '// Homebrew (recommended)' },
+    {
+      type: 'input',
+      prompt: '$',
+      content: 'brew tap codestz/tap && brew install claude-hindsight',
+    },
+    { type: 'divider', content: '' },
+    { type: 'comment', content: '// Cargo' },
+    { type: 'input', prompt: '$', content: 'cargo install claude-hindsight' },
+  ]}
+/>
+
+## Status
+
+Active — Rust 1.75+, MIT licensed, on [crates.io](https://crates.io/crates/claude-hindsight) and Homebrew, with pre-built binaries for macOS (Apple Silicon & Intel) and Linux (x86_64 & aarch64). Docs at [codestz.github.io/claude-hindsight](https://codestz.github.io/claude-hindsight/).

@@ -15,18 +15,18 @@ export function Navigation({ className }: NavigationProps) {
   const navItems = [
     { href: '/', label: 'Home' },
     { href: '/experiments', label: 'Experiments' },
+    { href: '/projects', label: 'Projects' },
     { href: '/experience', label: 'Experience' },
     { href: '/about', label: 'About' },
   ];
 
   return (
-    <nav className={cn('hidden md:flex items-center gap-2', className)} aria-label="Main navigation">
+    <nav
+      className={cn('hidden md:flex items-center gap-2', className)}
+      aria-label="Main navigation"
+    >
       {navItems.map((item) => (
-        <NavLink
-          key={item.href}
-          href={item.href}
-          active={pathname === item.href}
-        >
+        <NavLink key={item.href} href={item.href} active={pathname === item.href}>
           {item.label}
         </NavLink>
       ))}

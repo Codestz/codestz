@@ -1,0 +1,115 @@
+---
+title: 'mcpx'
+description: 'A secure gateway for MCP servers — from CLI to production. Wrap any MCP server into a CLI command with security policies, audit logging, and scoped daemon isolation, so teams adopt MCP with confidence.'
+publishedAt: '2026-03-01'
+repo: 'Codestz/mcpx'
+thumbnail: '/images/blog/mcpx.png'
+liveUrl: 'https://codestz.github.io/mcpx'
+technologies: ['Go', 'MCP', 'CLI', 'Security Policies', 'AI Agents', 'YAML']
+language: 'Go'
+stars: 11
+forks: 1
+status: 'active'
+featured: true
+---
+
+## The control plane between agents and MCP
+
+[MCP](https://modelcontextprotocol.io) is how AI agents talk to tools — databases, code search, messaging, the lot. But connecting an agent directly to MCP servers is great in a demo and scary in production. mcpx sits in the middle: it wraps **any MCP server into a CLI command** with security policies, audit logging, and scoped daemon isolation.
+
+<Terminal
+  title="mcpx — discover → call → compose"
+  lines={[
+    { type: 'input', prompt: '$', content: 'mcpx serena find_symbol --name "Auth"' },
+    { type: 'output', content: 'src/auth/session.ts:42  class AuthSession' },
+    {
+      type: 'input',
+      prompt: '$',
+      content: 'mcpx serena search_for_pattern --substring_pattern "TODO" | jq -r \'.file\'',
+    },
+    {
+      type: 'input',
+      prompt: '$',
+      content: 'mcpx postgres query --sql "SELECT * FROM users LIMIT 10"',
+    },
+    { type: 'success', content: '10 rows' },
+  ]}
+/>
+
+## Three problems mcpx fixes
+
+MCP servers have three problems the moment you move past a single laptop.
+
+### 1. Context cost
+
+Loading MCP servers natively costs **50–100K tokens per session** — before any work starts. mcpx calls tools on demand via the shell, so the upfront cost is zero.
+
+<StatBlock
+  title="Context budget"
+  stats={[
+    { value: '~80K', label: 'Tokens: 5 native servers' },
+    { value: '0', label: 'Tokens: any count via mcpx' },
+    { value: '100%', label: 'Context left for work' },
+  ]}
+/>
+
+### 2. No security
+
+Every MCP tool call is unrestricted. An agent connected to a Postgres MCP can `DROP TABLE` as easily as `SELECT` — no authorization, no policy, no audit trail. mcpx adds the missing layer with declarative policies:
+
+```yaml
+# .mcpx/config.yml — block SQL mutations
+security:
+  policies:
+    - name: no-mutations
+      match:
+        tools: [query]
+        content:
+          target: args.sql
+          deny_pattern: "(?i)\\b(INSERT|UPDATE|DELETE|DROP|TRUNCATE)\\b"
+      action: deny
+      message: 'Mutation queries blocked'
+```
+
+<Terminal
+  lines={[
+    { type: 'input', prompt: '$', content: 'mcpx postgres query --sql "DROP TABLE users"' },
+    {
+      type: 'error',
+      content: 'error: server "postgres": policy "no-mutations" denied tool "query"',
+    },
+    { type: 'comment', content: 'Reason: Mutation queries blocked' },
+  ]}
+/>
+
+### 3. Multi-server management
+
+A code-search MCP needs different rules than a database MCP. And two developers on different projects shouldn't have interfering daemons. mcpx gives each server its own security profile and scoped, isolated daemons — read-only here, editing-with-guardrails there.
+
+## Install
+
+<Terminal
+  title="install"
+  lines={[
+    { type: 'comment', content: '// Homebrew (macOS / Linux)' },
+    { type: 'input', prompt: '$', content: 'brew tap codestz/tap && brew install mcpx' },
+    { type: 'divider', content: '' },
+    { type: 'comment', content: '// Go (requires Go 1.24+)' },
+    { type: 'input', prompt: '$', content: 'go install github.com/codestz/mcpx/cmd/mcpx@latest' },
+    { type: 'divider', content: '' },
+    { type: 'comment', content: '// Import an existing .mcp.json' },
+    { type: 'input', prompt: '$', content: 'mcpx init' },
+    {
+      type: 'success',
+      content: 'Detected .mcp.json — imported 3 servers: serena, sequential-thinking, filesystem',
+    },
+  ]}
+/>
+
+## Why it's built in Go
+
+A control plane in the hot path of every agent tool call has to be fast and trivial to deploy. Go gives a **single static binary** — no runtime, no dependency tree — that drops onto a laptop or a CI runner identically. The result is a gateway you can adopt incrementally: start by wrapping one server on your machine, end with policy-enforced MCP in production.
+
+## Status
+
+Active — Go 1.24+, MIT licensed, available via Homebrew and `go install`. Full docs at [codestz.github.io/mcpx](https://codestz.github.io/mcpx), with a companion [examples repo](https://github.com/codestz/mcpx-examples).

@@ -6,7 +6,8 @@
 export const APP_CONFIG = {
   name: 'Esteban Estrada',
   title: 'Esteban Estrada | Senior Software Engineer',
-  description: 'Senior Software Engineer specializing in AI integration, full-stack development, and performance optimization.',
+  description:
+    'Senior Software Engineer specializing in AI integration, full-stack development, and performance optimization.',
   author: {
     name: 'Esteban Estrada',
     email: 'esteban.estrada.col@gmail.com',
@@ -24,6 +25,7 @@ export const CONTENT_CONFIG = {
   postsPerPage: 10,
   featuredPostsLimit: 3,
   featuredProjectsLimit: 3,
+  featuredShowcaseLimit: 3,
   readingSpeed: 200, // words per minute
   categories: ['general', 'ai', 'performance', 'architecture', 'tutorial'] as const,
 } as const;

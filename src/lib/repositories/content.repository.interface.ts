@@ -1,4 +1,4 @@
-import { Post, Project, Result } from '@/lib/types';
+import { Post, Project, ShowcaseProject, Result } from '@/lib/types';
 
 /**
  * Content Repository Interface
@@ -21,10 +21,18 @@ export interface IProjectRepository {
   findByTechnology(tech: string): Promise<Result<readonly Project[]>>;
 }
 
+export interface IShowcaseRepository {
+  findAll(): Promise<Result<readonly ShowcaseProject[]>>;
+  findBySlug(slug: string): Promise<Result<ShowcaseProject | null>>;
+  findFeatured(limit?: number): Promise<Result<readonly ShowcaseProject[]>>;
+  findByTechnology(tech: string): Promise<Result<readonly ShowcaseProject[]>>;
+}
+
 /**
  * Combined content repository interface
  */
 export interface IContentRepository {
   posts: IPostRepository;
   projects: IProjectRepository;
+  showcase: IShowcaseRepository;
 }

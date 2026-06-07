@@ -1,6 +1,12 @@
 import { PostRepository } from './post.repository';
 import { ProjectRepository } from './project.repository';
-import type { IContentRepository, IPostRepository, IProjectRepository } from './content.repository.interface';
+import { ShowcaseRepository } from './showcase.repository';
+import type {
+  IContentRepository,
+  IPostRepository,
+  IProjectRepository,
+  IShowcaseRepository,
+} from './content.repository.interface';
 
 /**
  * Content Repository
@@ -10,13 +16,16 @@ import type { IContentRepository, IPostRepository, IProjectRepository } from './
 export class ContentRepository implements IContentRepository {
   readonly posts: IPostRepository;
   readonly projects: IProjectRepository;
+  readonly showcase: IShowcaseRepository;
 
   constructor(
     postRepository: IPostRepository = new PostRepository(),
-    projectRepository: IProjectRepository = new ProjectRepository()
+    projectRepository: IProjectRepository = new ProjectRepository(),
+    showcaseRepository: IShowcaseRepository = new ShowcaseRepository()
   ) {
     this.posts = postRepository;
     this.projects = projectRepository;
+    this.showcase = showcaseRepository;
   }
 }
 
