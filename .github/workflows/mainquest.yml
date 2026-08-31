@@ -1,0 +1,59 @@
+name: MainQuest card
+
+on:
+  schedule:
+    # Odd minute on purpose: :00 is heavily contended and runs get delayed.
+    - cron: '37 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Never let two runs commit to the same branch at once.
+concurrency:
+  group: mainquest
+  cancel-in-progress: false
+
+jobs:
+  card:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: Codestz/mainquest@v1
+        with:
+          # A PAT with read:user. GITHUB_TOKEN's scope for user-level
+          # contribution queries is inconsistent and will not return
+          # restrictedContributionsCount, so private work would vanish from the
+          # card. Falls back to GITHUB_TOKEN so the first run still works
+          # before the secret exists — the card will just show 0 sealed.
+          github_token: ${{ secrets.MAINQUEST_PAT || secrets.GITHUB_TOKEN }}
+          username: Codestz
+          lang: en
+          outputs: public/stats
+
+      - name: Commit the card
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add public/stats/card-*.svg public/stats/mainquest.state.json
+
+          # Commit even when nothing changed.
+          #
+          # Rendering is deterministic, so an unchanged profile produces
+          # byte-identical SVGs and `git commit` would be a no-op. That is a
+          # trap here: GitHub disables scheduled workflows after 60 days
+          # without repository activity, and a card that never commits
+          # eventually stops updating itself. An empty commit once a week is
+          # cheap insurance; the rest of the time we skip.
+          if git diff --cached --quiet; then
+            if [ "$(date +%u)" = "1" ]; then
+              git commit --allow-empty -m "chore: mainquest heartbeat (keeps the schedule alive)"
+              git push
+            else
+              echo "No change; not Monday. Skipping."
+            fi
+          else
+            git commit -m "chore: update mainquest card"
+            git push
+          fi
