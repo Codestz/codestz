@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: Codestz/mainquest@v1.1.0
+      - uses: Codestz/mainquest@v1
         with:
           # A PAT with read:user. GITHUB_TOKEN's scope for user-level
           # contribution queries is inconsistent and will not return
