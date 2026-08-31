@@ -22,12 +22,12 @@ jobs:
 
       - uses: Codestz/mainquest@v1
         with:
-          # A PAT with read:user. GITHUB_TOKEN's scope for user-level
-          # contribution queries is inconsistent and will not return
-          # restrictedContributionsCount, so private work would vanish from the
-          # card. Falls back to GITHUB_TOKEN so the first run still works
-          # before the secret exists — the card will just show 0 sealed.
-          github_token: ${{ secrets.MAINQUEST_PAT || secrets.GITHUB_TOKEN }}
+          # No github_token. It defaults to this workflow's own GITHUB_TOKEN,
+          # which reads every public contribution. The only thing it cannot
+          # read is restrictedContributionsCount — and this account has no
+          # private work, so there is nothing for a PAT to add. Running the
+          # same path a first-time user gets also means this repo notices if
+          # that path ever breaks.
           username: Codestz
           outputs: public/stats
           cards: status,abilities
