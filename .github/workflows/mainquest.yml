@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: Codestz/mainquest@v1
+      - uses: Codestz/mainquest@v1.1.0
         with:
           # A PAT with read:user. GITHUB_TOKEN's scope for user-level
           # contribution queries is inconsistent and will not return
@@ -29,14 +29,14 @@ jobs:
           # before the secret exists — the card will just show 0 sealed.
           github_token: ${{ secrets.MAINQUEST_PAT || secrets.GITHUB_TOKEN }}
           username: Codestz
-          lang: en
           outputs: public/stats
+          cards: status,abilities
 
       - name: Commit the card
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add public/stats/card-*.svg public/stats/mainquest.state.json
+          git add public/stats/card-*.svg public/stats/abilities-*.svg public/stats/mainquest.state.json
 
           # Commit even when nothing changed.
           #
