@@ -142,7 +142,6 @@ I build developer tools that make AI agents smarter.
 > I write about AI-driven development, MCP integrations, and developer tooling at **[codestz.dev](https://codestz.dev)**
 
 <!-- BLOG-POST-LIST:START -->
-
 - [LangGraph: When the Agent Loop Becomes a State Machine](https://codestz.dev/experiments/langgraph-stateful-orchestration) — Jun 2026 · 8 min
 - [createAgent + Middleware: How LangChain 1.0 Killed Chain Spaghetti](https://codestz.dev/experiments/langchain-createagent-middleware) — Jun 2026 · 7 min
 - [The 2026 LangChain Map: LangChain vs LangGraph vs LangSmith vs deepagents](https://codestz.dev/experiments/langchain-ecosystem-map-2026) — Jun 2026 · 7 min
