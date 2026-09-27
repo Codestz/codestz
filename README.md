@@ -15,7 +15,7 @@
 I build developer tools that make AI agents smarter.
 <br/>Rust, TypeScript, Go — CLIs, MCP servers, LSP integrations.
 
-[codestz.dev](https://codestz.dev) / [LinkedIn](https://www.linkedin.com/in/codestz/) / [est.estrada@outlook.com](mailto:est.estrada@outlook.com)
+[codestz.dev](https://codestz.dev) / [LinkedIn](https://www.linkedin.com/in/codestz/)
 
 </div>
 
@@ -38,7 +38,7 @@ I build developer tools that make AI agents smarter.
 <sub>Building the infrastructure that makes AI coding agents more capable</sub>
 </td>
 <td align="center" width="25%">
-<img width="36" src="https://cdn.simpleicons.org/json/7c3aed" alt=""/><br/>
+<img width="36" src="https://cdn.simpleicons.org/modelcontextprotocol/7c3aed" alt=""/><br/>
 <b>MCP & LSP</b><br/>
 <sub>Protocol-level integrations for code intelligence and AI interop</sub>
 </td>
@@ -88,7 +88,7 @@ I build developer tools that make AI agents smarter.
 <div align="center">
 <h3>Currently</h3>
 
-<img width="16" src="https://cdn.simpleicons.org/hashnode/7c3aed" alt=""/> Writing about AI-driven development @ **[codestz.dev](https://codestz.dev)**
+<img width="16" src="https://cdn.simpleicons.org/rss/7c3aed" alt=""/> Writing about AI-driven development @ **[codestz.dev](https://codestz.dev)**
 <br/>
 <img width="16" src="https://cdn.simpleicons.org/anthropic/7c3aed" alt=""/> Building **[opencode-cockpit](https://github.com/Codestz/opencode-cockpit)**: background terminals and a docked TUI panel for OpenCode agents
 
@@ -96,8 +96,15 @@ I build developer tools that make AI agents smarter.
 
 ---
 
-### Featured Project
+### Featured Projects
 
+<a href="https://github.com/Codestz/opencode-cockpit">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./public/stats/repo-opencode-cockpit-dark.svg"/>
+  <source media="(prefers-color-scheme: light)" srcset="./public/stats/repo-opencode-cockpit-light.svg"/>
+  <img src="./public/stats/repo-opencode-cockpit-dark.svg" alt="opencode-cockpit"/>
+</picture>
+</a>
 <a href="https://github.com/Codestz/claude-hindsight">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./public/stats/repo-claude-hindsight-dark.svg"/>

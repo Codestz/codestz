@@ -10,7 +10,7 @@ const PURPLE = '#7c3aed';
 const TOKEN = process.env.GITHUB_TOKEN;
 
 // Featured repos rendered as standalone cards (stars/forks auto-refreshed)
-const FEATURED_REPOS = ['claude-hindsight'];
+const FEATURED_REPOS = ['opencode-cockpit', 'claude-hindsight'];
 
 if (!TOKEN) {
   console.error('GITHUB_TOKEN is required');
