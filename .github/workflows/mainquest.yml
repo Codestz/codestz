@@ -30,7 +30,7 @@ jobs:
           # that path ever breaks.
           username: Codestz
           outputs: public/stats
-          cards: status,abilities
+          cards: status
 
       - name: Commit the card
         run: |
