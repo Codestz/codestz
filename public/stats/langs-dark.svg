@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="340" height="168" viewBox="0 0 340 168">
   <text x="25" y="28" fill="#7c3aed" font-size="16" font-weight="bold" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Top Languages</text>
-  <rect x="25" y="42" width="196.04" height="8" fill="#3178c6" rx="0"/><rect x="221.04" y="42" width="50.459999999999994" height="8" fill="#fcb32c" rx="0"/><rect x="271.5" y="42" width="19.43" height="8" fill="#f1e05a" rx="0"/><rect x="290.93" y="42" width="7.830000000000001" height="8" fill="#dea584" rx="0"/><rect x="298.76" y="42" width="6.96" height="8" fill="#663399" rx="0"/><rect x="305.71999999999997" y="42" width="4.930000000000001" height="8" fill="#A97BFF" rx="0"/><rect x="310.65" y="42" width="2.32" height="8" fill="#00ADD8" rx="0"/><rect x="312.96999999999997" y="42" width="2.03" height="8" fill="#ff5a03" rx="0"/>
+  <rect x="25" y="42" width="197.48999999999998" height="8" fill="#3178c6" rx="0"/><rect x="222.48999999999998" y="42" width="49.59" height="8" fill="#fcb32c" rx="0"/><rect x="272.08" y="42" width="19.14" height="8" fill="#f1e05a" rx="0"/><rect x="291.21999999999997" y="42" width="7.830000000000001" height="8" fill="#dea584" rx="0"/><rect x="299.04999999999995" y="42" width="6.96" height="8" fill="#663399" rx="0"/><rect x="306.00999999999993" y="42" width="4.64" height="8" fill="#A97BFF" rx="0"/><rect x="310.6499999999999" y="42" width="2.32" height="8" fill="#00ADD8" rx="0"/><rect x="312.9699999999999" y="42" width="2.03" height="8" fill="#ff5a03" rx="0"/>
   
     <g transform="translate(25, 70)">
       <circle cx="5" cy="5" r="5" fill="#3178c6"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">TypeScript 67.6%</text>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">TypeScript 68.1%</text>
     </g>
     <g transform="translate(175, 70)">
       <circle cx="5" cy="5" r="5" fill="#fcb32c"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">MDX 17.4%</text>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">MDX 17.1%</text>
     </g>
     <g transform="translate(25, 92)">
       <circle cx="5" cy="5" r="5" fill="#f1e05a"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">JavaScript 6.7%</text>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">JavaScript 6.6%</text>
     </g>
     <g transform="translate(175, 92)">
       <circle cx="5" cy="5" r="5" fill="#dea584"/>
@@ -24,7 +24,7 @@
     </g>
     <g transform="translate(175, 114)">
       <circle cx="5" cy="5" r="5" fill="#A97BFF"/>
-      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Kotlin 1.7%</text>
+      <text x="16" y="9" fill="#c9d1d9" font-size="12" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Kotlin 1.6%</text>
     </g>
     <g transform="translate(25, 136)">
       <circle cx="5" cy="5" r="5" fill="#00ADD8"/>
