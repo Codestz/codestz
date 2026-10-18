@@ -1,0 +1,334 @@
+---
+title: 'Give the AI Eyes: The Studio That Saved Guildhall'
+description: 'My first rewrite of Guildhall passed every test and still looked worse than the version it replaced. The second one worked. The difference was not a better model or a better prompt. It was a Studio: tools that let me, and the AI, see, tweak and compare before anything touched the real world. Part 1 of the Building Guildhall series.'
+publishedAt: '2026-10-18'
+category: 'ai'
+tags:
+  [
+    'guildhall',
+    'procedural-generation',
+    'threejs',
+    'ai-workflow',
+    'claude-code',
+    'building-guildhall',
+  ]
+featured: true
+type: 'experiment'
+author: 'Esteban Estrada'
+thumbnail: '/images/blog/guildhall-studio-eyes.png'
+series: 'Building Guildhall'
+seriesOrder: 1
+---
+
+[Guildhall](https://guildhall.codestz.dev) turns a code repository into a living 3D world. Every folder becomes a village, the biggest package becomes the capital, the commit history grows the land season by season, and when AI agents work on the code, you watch them walk through town as heroes.
+
+<Video
+  src="/videos/blog/guildhall/trailer.mp4"
+  poster="/videos/blog/guildhall/trailer-poster.jpg"
+  title="Guildhall trailer: React's repository grows into an island, an agent walks out of the castle, a storm, a dragon and fireworks"
+  label="Guildhall today"
+  caption="React's 13 years grown into an island, a hero (an AI agent) on a quest, a storm when tests fail, fireworks when the work ships clean. Everything is captured live from the site."
+/>
+
+This series is about how I built it, and specifically about the parts where AI alone was not enough. I'll start with the decision that mattered most, because it is the one every developer using AI can apply tomorrow:
+
+**Before you build the world, build the workshop. And give the AI eyes.**
+
+## Version one shipped. Version two looked worse.
+
+Guildhall V1 was live and people liked it: a warm, chunky, toy-like island with townsfolk, a camera that filmed "stories", and a little HUD.
+
+<Figure
+  src="/images/blog/guildhall/v1-diorama.webp"
+  alt="Guildhall V1: a small low-poly island at golden hour with a lit hall in the middle"
+  label="V1"
+  caption="V1: small, warm, readable. It set the look everyone, including me, liked."
+/>
+
+So I planned a "serious" V2. A continuous continent instead of one island, smooth terrain, ring-shaped towns, density metrics, architecture decision records, milestone gates, and a team of AI agents working in parallel.
+
+The engineering was real. Assets were imported at true scale, crowds ran in workers, performance budgets were met, tests were green.
+
+Then one morning I put V2 next to V1, and the new world looked worse.
+
+<Figure
+  src="/images/blog/guildhall/v2-attempt-smooth.webp"
+  alt="The first V2 attempt: a smooth, flat green island with scattered houses and thin rivers"
+  label="V2, first attempt"
+  caption="The first V2 attempt. Every metric passed. The picture did not."
+/>
+
+<Callout type="quote" author="My notes that morning">
+  We are getting into the same trap.
+</Callout>
+
+That attempt now lives on a branch called `archive/v2-attempt`, kept only as a reference for what not to do.
+
+<Gallery
+  title="Three iterations, in pictures"
+  columns={3}
+  images={[
+    {
+      src: '/images/blog/guildhall/v1-diorama.webp',
+      alt: 'Guildhall V1 at golden hour',
+      caption: 'V1 at golden hour: the look everyone liked',
+    },
+    {
+      src: '/images/blog/guildhall/v1-night.webp',
+      alt: 'Guildhall V1 at night',
+      caption: 'V1 at night',
+    },
+    {
+      src: '/images/blog/guildhall/v2-attempt-map.webp',
+      alt: 'A hand-drawn style map of the compact island planned in the first V2 attempt',
+      caption: 'V2 attempt: the plan looked great on paper',
+    },
+    {
+      src: '/images/blog/guildhall/v2-attempt-districts.webp',
+      alt: 'The first V2 attempt in 3D: flat green districts with sparse buildings',
+      caption: 'V2 attempt in 3D: districts, but no life',
+    },
+    {
+      src: '/images/blog/guildhall/v2-attempt-smooth.webp',
+      alt: 'The first V2 attempt: smooth terrain with scattered houses',
+      caption: 'Smooth terrain: every metric passed',
+    },
+    {
+      src: '/images/blog/guildhall/hex-spike-prefabs.webp',
+      alt: 'The first hex tile prefabs lined up on a light background',
+      caption: 'The restart: the first hex tile prefabs',
+    },
+    {
+      src: '/images/blog/guildhall/hex-world-wide.webp',
+      alt: 'The first hex world seen wide',
+      caption: 'The first hex world, the same day',
+    },
+    {
+      src: '/images/blog/guildhall/town-hero.webp',
+      alt: 'A hex town with houses, roads and trees at golden hour',
+      caption: 'A few days later: a town with daily life',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-today.webp',
+      alt: 'Guildhall today: the castle with heroes and the HUD',
+      caption: 'Today',
+    },
+  ]}
+/>
+
+## Why the agents could not see the problem
+
+Here is the uncomfortable part. The agents did exactly what the plan said. Milestones met, tests passing, metrics in range. When something looked off, they reworked it, and kept reworking it.
+
+But nothing in that loop could say _"this is the wrong thing."_
+
+A test can tell you a house is placed on a valid tile. It cannot tell you the town feels empty. A metric can tell you the forest covers 30% of the land. It cannot tell you the forest looks like green noise. Procedural worlds fail in **combinations**: a castle in a river, but only with rain at 2.5 and hills at 0. You will never write the test for that combination, because you never imagined it.
+
+The AI was working blind. And honestly, so was I: I was reviewing plans and diffs instead of looking at the world.
+
+## The turn: build the workshop first
+
+At the restart I wrote one line in the plan: _the Studio is the key to getting this polished._
+
+Instead of generating the world and hoping, we built the tools to see it, piece by piece:
+
+<StatBlock
+  title="The Studio, in numbers"
+  stats={[
+    { value: '1,500+', label: 'Pieces at true scale' },
+    { value: '18', label: 'CC0 asset packs' },
+    { value: '80+', label: 'Tile prefabs as data' },
+    { value: '230+', label: 'Places people work and rest' },
+  ]}
+/>
+
+<Figure
+  src="/images/blog/guildhall/studio-home.webp"
+  alt="The Guildhall Studio home page: a dark brown workshop page with a live tile preview and counts of pieces, packs, prefabs, spots and clips"
+  label="The Studio"
+  caption="The Studio's front door. Every tool the world is built with, each one live."
+/>
+
+### Pieces: everything at true scale
+
+Every asset, from 18 KayKit and Kenney packs, browsable and searchable, standing next to a character for scale. Sounds boring. It solved the first real bug of V1: houses smaller than the people walking past them. Now one rule holds everywhere: the door is a character's height.
+
+<Figure
+  src="/images/blog/guildhall/studio-pieces.webp"
+  alt="The Pieces browser: a grid of weapons and props with filters by pack on the left and a character silhouette for scale"
+  label="Pieces"
+/>
+
+### Tile prefabs as data, and a composer to author them
+
+This was the biggest unlock. Every hex tile (a house, a farm, a canteen with a beer garden, an archery range) is a JSON file: its pieces, where people sit, work and talk, and what they must walk around. A composer lets me move pieces with a gizmo and then **try** the tile, with characters standing on every spot.
+
+<Figure
+  src="/images/blog/guildhall/studio-composer.webp"
+  alt="The tile composer: a list of tiles on the left, a 3D canteen tile in the middle, a list of pieces, spots and blockers on the right"
+  label="Tile composer"
+  caption="A design opinion ('a canteen where people drink in the evening') becomes data the simulation uses."
+/>
+
+<Figure
+  src="/images/blog/guildhall/studio-prefab-review.webp"
+  alt="An archery range tile prefab on hex ground, with its name, kind, piece count and spot count in a label"
+  label="Prefab review"
+/>
+
+### The hex map: knobs you can turn in seconds
+
+A 2D map of the island with sliders for coast, hills, rivers, forest and repo size, which opens the same island in 3D with one click. This is where "castle in a river with rain 2.5 and hills 0" stops being a mystery and becomes a one-click repro.
+
+<Figure
+  src="/images/blog/guildhall/studio-hexmap.webp"
+  alt="The hex map: a 2D island in hexagons with sliders for repo size, coast, hills, rivers and forest on the left"
+  label="Hex map"
+/>
+
+### The grip matrix: a visual regression test
+
+V1 had a nasty problem: characters held props wrong. Grips were hand-tuned per prop, and they broke as soon as an animation rolled the wrist. In V2, a grip is data (handle point, working edge, which hand) authored in a grip editor, and the **grip matrix** shows every held prop in every animation on one sheet.
+
+<Figure
+  src="/images/blog/guildhall/studio-grip-matrix.webp"
+  alt="The grip matrix: rows of props (axe, pickaxe, shovel, lantern, torch...) and columns of animation clips, each cell a small character holding the prop"
+  label="Grip matrix"
+  caption="One glance tells you if any prop, in any animation, is held wrong. A test can't do that. A sheet can."
+/>
+
+### Boards for decisions
+
+Some decisions are taste, not engineering. So they got boards instead of debates: a scale board to choose proportions side by side, and a nature board to choose how dense and how colorful the land should be.
+
+<Figure
+  src="/images/blog/guildhall/studio-nature-presets.webp"
+  alt="Three versions of the same town with different nature density, side by side"
+  label="Nature presets A / B / C"
+  caption="Taste decisions are made from pictures, not documents."
+/>
+
+<Gallery
+  title="More of what the Studio made possible"
+  columns={3}
+  images={[
+    {
+      src: '/images/blog/guildhall/studio-tile-prefabs.webp',
+      alt: 'Every hex tile prefab laid out on one board',
+      caption: 'Every tile prefab on one board, at the chosen scale',
+    },
+    {
+      src: '/images/blog/guildhall/castle-tiers.webp',
+      alt: 'The castle at its four tiers, from a keep to a citadel, plus scenes',
+      caption: 'The castle grows by tier as the repo grows',
+    },
+    {
+      src: '/images/blog/guildhall/hexmap-3d.webp',
+      alt: 'The hex map opened in 3D',
+      caption: 'The 2D hex map, opened in 3D with one click',
+    },
+    {
+      src: '/images/blog/guildhall/noon-square.webp',
+      alt: 'The town square at noon with townsfolk',
+      caption: 'The square at noon: spots authored in the composer, used by the sim',
+    },
+    {
+      src: '/images/blog/guildhall/tavern-night.webp',
+      alt: 'The tavern and beer garden at night, lit by lamps',
+      caption: 'The tavern at night: the canteen prefab, living',
+    },
+    {
+      src: '/images/blog/guildhall/studio-pieces.webp',
+      alt: 'The Pieces browser',
+      caption: 'Pieces: the whole library, searchable',
+    },
+  ]}
+/>
+
+## Giving the AI eyes
+
+The Studio was not only for me. This is the part I want every developer working with agents to steal.
+
+Every tool in the Studio can be driven by a script. The page exposes a small debug API (`window.guildhall`) that lets a tool set the camera, jump the story clock, change the season, or wait until the world is ready. On top of it, a shot harness opens any URL in a headless browser and saves the frame.
+
+So every agent task ended the same way:
+
+<ProcessFlow
+  title="How an agent task ends"
+  steps={[
+    {
+      title: 'Build the change',
+      description: 'Inside a contract: the files it owns, the behavior it must keep.',
+    },
+    {
+      title: 'Shoot it',
+      description:
+        'Before and after, at the same viewport and pixel density, on phone and desktop.',
+    },
+    {
+      title: 'Look at it',
+      description: 'The agent opens its own screenshots and critiques them before reporting.',
+    },
+    {
+      title: 'Prove it holds',
+      description:
+        'A test sweeps many seeds: no building over water, no one walking through walls.',
+    },
+    { title: 'Human review', description: 'I review contact sheets, not diffs.' },
+  ]}
+/>
+
+That changes what the AI can do. Without eyes, an agent can only satisfy the checks you wrote. With screenshots it must look at, it can notice the things nobody wrote a check for. And the Studio gives it a safe place to experiment: try a tile in the composer, turn a knob on the hex map, compare three nature presets, all before anything touches the real world.
+
+<Callout type="tip">
+  If your AI is building something visual or generative, the most valuable code you will write is
+  not the feature. It is the tool that lets the AI see the feature.
+</Callout>
+
+## What it bought us
+
+The restart kept V2's good foundations (the asset pipeline, the renderer, the worker build, the crowd, the Studio) and threw away only the world generation and the look. A one-hour spike on a hex grid looked right immediately, and the Studio made it fast to build on.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-today.webp"
+  alt="Guildhall today: a castle at golden hour with heroes, chips over their heads, portraits in a face bar and a caption at the bottom"
+  label="Guildhall today"
+  caption="Guildhall today. By the evening of the hex spike we already had an island growing with the repo, prefabs as data, people with daily routines and a castle that grows by tier. My note that night: 'This is way better than V1.'"
+/>
+
+<DecisionLog
+  title="What changed between the failed attempt and the one that worked"
+  decisions={[
+    {
+      proposal: 'Plan the whole world first (continent, milestones, ADRs), then look at it',
+      verdict: 'rejected',
+      reasoning:
+        'Every metric passed and the world still looked worse. Plans cannot see a picture.',
+    },
+    {
+      proposal: 'Build the tools to see, tweak and compare before building the world',
+      verdict: 'accepted',
+      reasoning: 'Bugs became one-click repros and taste became data.',
+    },
+    {
+      proposal: 'End every agent task with screenshots the agent must critique',
+      verdict: 'accepted',
+      reasoning: 'The AI catches what no test describes, and I review pictures instead of diffs.',
+    },
+    {
+      proposal: 'Settle taste with debates in documents',
+      verdict: 'rejected',
+      reasoning: 'Boards (scale A/B/C, nature A/B/C) decided in minutes what documents could not.',
+    },
+  ]}
+/>
+
+## The lesson
+
+Tests tell you the thing works. Only looking tells you it is the right thing.
+
+AI did a huge share of the typing on Guildhall. But the turns that mattered came from someone looking at the real output and making a call, and the Studio is what made looking cheap, for me and for the agents. If you are building anything procedural, visual or AI-generated: **your editor and your visualizer are the quality engine of the product. Build them first.**
+
+Next in the series: **procedural generation**, and why it was the place where the models failed the most.
+
+You can explore the Studio yourself at [guildhall.codestz.dev](https://guildhall.codestz.dev) (everything is open, nothing is saved), and the code is on [GitHub](https://github.com/Codestz/guildhall).
