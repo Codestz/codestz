@@ -1,0 +1,345 @@
+---
+title: "Feet That Don't Skate: Why 'It Looks Right' Is the Hardest Requirement"
+description: 'Every animation bug in Guildhall passed its tests. Shields mounted backwards on every clip, legs whirling at 2.3× speed, lamps that lit before anyone touched them, a dragon that flew like a kite. Models wrote motion code that ran on the first try. Making it look right took eyes, timing and a lot of looking. Part 4 of the Building Guildhall series.'
+publishedAt: '2026-10-18'
+category: 'ai'
+tags: ['guildhall', 'animation', 'threejs', 'game-feel', 'ai-workflow', 'building-guildhall']
+featured: true
+type: 'experiment'
+author: 'Esteban Estrada'
+thumbnail: '/images/blog/guildhall-animations-and-timing.png'
+series: 'Building Guildhall'
+seriesOrder: 4
+---
+
+Here is a lamplighter in [Guildhall](https://guildhall.codestz.dev), on the live site, a little before eight in the evening.
+
+<Video
+  src="/videos/blog/guildhall/guildhall-animations-and-timing/lamplighter.mp4"
+  poster="/videos/blog/guildhall/guildhall-animations-and-timing/lamplighter-poster.webp"
+  title="A lamplighter crosses a town square at dusk, and each lamp post comes on as he reaches it"
+  label="Live site, town 1, 19:51 to 20:03"
+  caption="Each lamp stays dark until his torch gets there. Recorded from guildhall.codestz.dev, with the day clock driven by a script."
+/>
+
+Watch the lamps. None of them comes on before he gets there. That one detail took a world plan that knows which post each lamplighter visits and at what hour, a renderer that keeps each lamp's light, glow and halo dark until that hour, and a smoothstep so the light rises over about two seconds instead of snapping on.
+
+And watch the first lamp closely, because there is a bug in it. To light it, the lamplighter walks right into the post: for a moment the pole goes straight through his body. The lamp timing is perfect, the light rises exactly when he arrives, and still the moment looks wrong.
+
+<Callout type="warning">
+  Spot the bug: at the first lamp, the lamplighter stands inside the post. Timing right, position
+  wrong. It is still live as I publish this, and it is exactly the kind of thing no test caught and
+  a screenshot would have.
+</Callout>
+
+That is this whole post in one clip. Getting it to run is easy. Getting it to look right needs someone watching.
+
+None of that was hard to write. The hard part was noticing that it mattered.
+
+**This post is about the requirement that no test can hold: "it looks right."**
+
+## Code that runs is not motion that reads
+
+By this point in the project I could describe almost any motion and get code that compiled, passed its tests and ran on the first try. Frontier models are very good at that now.
+
+And almost every time, the result looked a bit wrong.
+
+The run cycle played, but the legs whirled. The shield was held, but it was facing the wrong way. The dragon flew its circle, but it flew like a kite on a string. Lamps lit at dusk, but all at once, while the lamplighter was still three streets away.
+
+None of these are bugs a test finds, because none of them are wrong in a way you can describe in advance. You find them by watching, and you fix them by knowing what "right" looks like well enough to say it precisely. That is where experience earned its keep, much more than prompting did.
+
+## Grips: holding things is harder than it looks
+
+Every character in Guildhall holds something: an axe, a mug, a lantern, a sword and a shield. In V1, each prop had one hand-tuned position and rotation on the hand bone. V1's own code admitted the problem: _"one fixed turn cannot suit every clip when the wrist rolls."_ Props looked wrong in clips nobody had checked.
+
+In V2 a grip is **data with meaning**. Each prop gets a handle point, an axis (handle to working end), a strike edge or face, and a slot (right hand, left hand, chest, head, back). One small function maps that frame onto the measured frame of the rig's hand. Props that must stay upright (a mug, a lantern, a bucket) hang from a pivot at the handle, and after the animation poses the body each frame, a solver turns that pivot so the prop's up stays world-up. The lantern still swings with the wrist. It just never tilts.
+
+```ts
+// packages/render/src/character/upright.ts (simplified)
+export function keepUpright(mounted: Mounted): void {
+  const upright = mounted.mount.upright;
+  if (!upright || !mounted.pivot.visible) return;
+  mounted.bone.getWorldQuaternion(hand);
+  // the prop's up in the world: hand · piece · up
+  up.set(...upright.up)
+    .applyQuaternion(mounted.piece.quaternion)
+    .applyQuaternion(hand);
+  align.setFromUnitVectors(up.normalize(), UP);
+  // pivot = hand⁻¹ · align · hand: the hand's turn, then the levelling
+  mounted.pivot.quaternion.copy(hand).invert().multiply(align).multiply(hand);
+}
+```
+
+Grips are authored in the Studio's grip editor (from [part 1](/experiments/guildhall-studio-give-ai-eyes)): pick a prop, click the axis and edge, drag the gold handle marker, and watch the same character chop, walk, sit and wave with it below.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-animations-and-timing/grip-editor.webp"
+  alt="The Guildhall Studio grip editor: a knight holding a sword, a prop-space inset showing the axis, edge, up and handle markers, and four small previews of the knight chopping, walking, sitting and waving"
+  label="Grip editor"
+  caption="A grip is a handle, an axis and an edge, checked in four clips at once before it is saved to data/mounts.json."
+/>
+
+Then the **grip matrix** puts every prop in every clip on one sheet. It is the closest thing this project has to a visual regression test.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-animations-and-timing/grip-matrix.webp"
+  alt="The grip matrix: 13 rows of props (sword, axe, pickaxe, hammer, shovel, lantern, mug, torch, staff, shield, spellbook, bucket, bow) by 8 columns of clips, each cell a small knight holding the prop"
+  label="Grip matrix"
+  caption="13 props × 8 clips on one sheet. One look tells you if anything is held wrong."
+/>
+
+### The shield that was backwards on every clip
+
+Here is the honest part. The matrix had existed since the first days of V2. The round shield was in it. And the shield was **mounted backwards on every clip**, painted face against the knight's arm and bare back facing the enemy, for days.
+
+The matrix had it on screen the whole time. Nobody read it, because the matrix looked at every character from the front, where a shield on the left forearm is hard to judge. It was caught in the world instead, in the same note as the "kissing knights" further down, and queued as "the knight's shield grip, flat on the forearm, per clip".
+
+The fix was one sign in the data:
+
+<Comparison
+  title="data/mounts.json, kaykit-adventurers/shield-round-color"
+  wrong='"edge": [1, 0, 0]'
+  right='"edge": [-1, 0, 0]'
+/>
+
+Plus a quarter turn for the two-handed guard, so the shield stands upright in front of the chest. Plus one change to the tool: the matrix gained a `yaw=` parameter, so it can look at a character's left side. **A visual test is only as good as the camera you point at it.**
+
+<Gallery
+  title="The shield, before and after (left / right in each image)"
+  columns={3}
+  images={[
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/shield-melee-blocking.webp',
+      alt: 'A knight blocking: before, the bare grey back of the shield faces out; after, the red and white face faces out',
+      caption: 'Melee_Blocking: the face finally faces the enemy',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/shield-idle-a.webp',
+      alt: 'A knight standing idle: before, the shield is turned in toward the body; after, it sits flat on the outside of the forearm',
+      caption: 'Idle_A: flat on the outside of the forearm',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/shield-walking-a.webp',
+      alt: 'A knight walking: before, the shield back faces out; after, the painted face faces out',
+      caption: 'Walking_A',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/shield-melee-1h-attack-chop.webp',
+      alt: 'A knight chopping with a sword: before and after, the shield on the other arm turns its face outward',
+      caption: 'Melee_1H_Attack_Chop',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/shield-seated.webp',
+      alt: 'A grip matrix crop of a knight sitting on a chair, on the floor and lying down: before, the shield and sword stay in hand; after, the shield is put away',
+      caption:
+        'A follow-up: the shield is put away while seated or lying, as the sword already was',
+    },
+  ]}
+/>
+
+## Stride-matched walking: feet that don't skate
+
+The next one showed up while following a hero on a long errand. Heroes could run up to 7 m/s, and the run clip just played faster. The note in the decision log: _heroes run up to 7 m/s → legs cycle frantically_.
+
+At 7 m/s, the KayKit run clip was playing at about **2.3× its own pace**. And the townsfolk had the opposite problem: their walk cycle covered 1.3 m per cycle on screen, about 0.83 m too long for the clip's actual stride, so their feet slid along the ground like ice skaters.
+
+The fix is not a smarter animation. It is a measurement. Each locomotion clip has its **own ground speed**: the speed its planted foot pushes the ground backward on the rig. Measure it once, and then the clip's play rate is simply speed divided by that ground speed. Feet stay where they land.
+
+```ts
+// packages/sim/src/life/gait.ts (simplified)
+export const GAIT_MPS = {
+  Walking_A: 0.78,
+  Walking_B: 0.86,
+  Walking_C: 0.5,
+  Running_A: 3, // KayKit's run
+  Running_B: 5, // the long-striding run: the sprint
+};
+export const GAIT_RATE_MAX = 1.6; // past it the legs whirl
+export const GAIT_RATE_MIN = 0.6; // below it a run floats
+export const SPRINT_FROM = 4.4; // m/s
+
+export function gaitOf(mps: number): string | undefined {
+  if (mps >= SPRINT_FROM) return 'Running_B';
+  if (mps >= RUN_FROM) return 'Running_A'; // 3 × 0.6 = 1.8 m/s
+  return undefined; // the body's own walk
+}
+```
+
+Then every gait gets a band. Walks stay at or under about 1.18× their own pace. A run starts at 1.8 m/s. From 4.4 m/s a hero switches to the sprint clip, and nothing ever plays past 1.6×. A test sweeps every speed a hero can move at and asserts the clip it gets plays inside its band. A later change capped heroes at 5 m/s instead of 7, once the roads ran straighter.
+
+<StatBlock
+  title="The gait bands"
+  stats={[
+    { value: '≤ 1.18×', label: 'Walks, over their own pace' },
+    { value: '1.8 m/s', label: 'A run starts' },
+    { value: '4.4 m/s', label: 'The sprint clip takes over' },
+    { value: '1.6×', label: 'Never past it, any clip' },
+  ]}
+/>
+
+<Figure
+  src="/images/blog/guildhall/guildhall-animations-and-timing/run-before-after.webp"
+  alt="Two rows of three frames of the same archer hero running through a cornfield at 7 m/s: top row in the short run clip, bottom row in the long-striding sprint clip"
+  label="7 m/s, before (top) and after (bottom)"
+  caption="Same hero, same moment, same 7 m/s. Top: the short run clip whirled at 2.3×. Bottom: the sprint clip at its own stride. In stills the difference is subtle. In motion it is the difference between running and pedalling."
+/>
+
+This is a good example of what I mean by experience. Stride matching is textbook, and any model writes it once you name it. The work is in looking at a hero crossing a field, saying "the legs are wrong", and knowing why: the clip plays over its own ground speed, so measure the ground speed.
+
+## Routines with timing
+
+A world feels alive when things happen **together** and **at the right moment**. The townsfolk's evening is written as timed routines, and the timing constants are design decisions, not implementation details.
+
+- **The tavern toast.** Every patron at a tavern tile runs on one clock. Seated drinkers rise at 26 seconds into the cycle, and every mug goes up at 26.8. The bard leads a 12-second song in the last cycle of each block. One clock per tile means the whole beer garden toasts at once.
+- **The tipsy walk home.** Nobody is drunk by daylight: a tipsy walk leaves the tavern no earlier than 21:00 and gets home before midnight. It is slower (up to 1.5×), weaves from side to side, and stops halfway against a wall. The first version sent 45% of the late drinkers home tipsy. I picked 30%.
+- **The lamplighter.** The world plan names each lamp post and the hour its lamplighter reaches it, and the renderer keeps that lamp dark until then. My only instruction was "lamps light only when the lamplighter reaches them". Everything else followed from that.
+- **Chats and waves.** Two walkers whose paths cross stop 1.0 to 1.6 m apart and take turns talking, 2.6 seconds each. Two who see each other coming down a road wave from 4 to 8 m away.
+
+<Gallery
+  title="An evening in town"
+  columns={3}
+  images={[
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/life-toast.webp',
+      alt: 'A beer garden at night lit by lanterns, patrons standing at their tables with mugs raised and speech bubbles saying Your health',
+      caption: 'The toast: every mug up at 26.8 s',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/life-beer-garden.webp',
+      alt: 'A wide view of a lit beer garden beside a tavern at night, patrons crowded round tables with speech bubbles',
+      caption: 'One clock per tavern tile',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/life-bard.webp',
+      alt: 'A bard and patrons in a beer garden by a stone tower, a speech bubble with a line of song',
+      caption: 'The bard leads the song',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/life-tipsy-0.webp',
+      alt: 'A townsperson walking home at night past a forge, a speech bubble saying A pint for the road',
+      caption: 'After 21:00: the walk home',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/life-wave.webp',
+      alt: 'Two townsfolk far apart on a road, one with a speech bubble saying Morning',
+      caption: 'A wave across the road, 4 to 8 m apart',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-animations-and-timing/life-chat.webp',
+      alt: 'Two townsfolk standing face to face on a path, chatting',
+      caption: 'A chat, 1.0 to 1.6 m apart',
+    },
+  ]}
+/>
+
+## Duels: distance is choreography
+
+Knights spar at the training arena and at drill spots around the castle. The arena bouts were 19 seconds of alternating blows: the winner cheers, and a lone duellist waits instead of swinging at air.
+
+Then I saw two knights fighting with their helmets fused together beside a building door. I called them the "kissing knights". The arena pairs were already spaced, but the heroes' sparring spots kept only 0.9 m from other people.
+
+Now one constant, `DUEL_APART = 1.6` m, is shared by every source that puts two fighters face to face. Its comment says why: _two bodies, a shield and a sword's reach between them, so a blow lands on the shield and the helmets never touch._ For the bout, each side steps in by half the difference, to 1.5 m at the closest (it was 1.32). A test asserts the distance for every pairing source.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-animations-and-timing/duel-arena.webp"
+  alt="Two crops of the same training arena: before, a duel pair stands so close their helmets nearly overlap; after, the pair stands a sword's reach apart with the shield facing the attacker"
+  label="Arena duel, before / after"
+  caption="1.6 m is not a number you derive. It is the distance at which the sword lands on the shield and the helmets stop kissing."
+/>
+
+## The story clock never stops
+
+Guildhall replays agent sessions as stories, and everything (heroes, captions, the camera) runs on a story clock. Then a story ended and the world **froze**: life halted mid-task, heroes stopped mid-road. The story clock had stopped, and life was reading it.
+
+The fix was a second notion of time. Life looks at `lifeAt`, which keeps running past the end of the story. When a session ends, heroes finish their current animation, walk to the Guildhall or the tavern, sit, toast in the evening, or go in at a door at night. A hero who fell rises as a pale ghost, drifts to the graveyard and fades at a grave. They never stop mid-walk.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-animations-and-timing/story-end-60s.webp"
+  alt="Two frames of the demo story A Party: left, at the end of the story the Guildmaster is strolling by the castle; right, sixty seconds later he has walked off and his chip says resting"
+  label="Story end, then 60 s later"
+  caption="When the story's clock stops, life's clock doesn't. The Guildmaster goes from strolling to resting instead of freezing."
+/>
+
+Time compression needed the same care. **Watch it grow** plays a repository's whole history in 40 seconds at 1×. Following the real date, the island flicked through a season every second or so. My note: _changes too fast._ Now each chapter keeps one season (that of its last day) and the season eases between chapters. At rest or while scrubbing, you see the real day.
+
+## Natural motion: nothing moves on a rail
+
+My note after the first sky shows: _"dragon flight feels unnatural"_, with a list to tweak later: wing-flap rhythm, banking, glide and soar arcs, altitude changes. The boats got the same treatment in the same pass.
+
+**Boats** now ride the swell the water shader actually draws. The hull is sampled at the bow, stern and beam for heave, pitch and roll. A small boat bobs on every wave; a big one lags and averages the swell over its length. Boats heel into turns, gather and lose way, overshoot their berths, and swing a few degrees at anchor.
+
+**The dragon** flies in acts: a burst of three to five wing beats while climbing, then a long glide on still wings, sinking. Some acts end in a swoop: the wings rise, it dives on the peaks, breathes fire at the bottom and beats hard to climb away. It sinks faster than it climbs. It banks with its body and tail following the wings. Every value comes from tables built once per show from a seed, so play, seek and a paused frame all show the same dragon.
+
+<Video
+  src="/videos/blog/guildhall/guildhall-animations-and-timing/dragon.mp4"
+  poster="/videos/blog/guildhall/guildhall-animations-and-timing/dragon-poster.webp"
+  title="The dragon flies over the island: wing beats, a long glide, a bank, then a swoop with fire"
+  label="The dragon, after"
+  caption="Beats, a glide on still wings, a bank, then a swoop to breathe fire on the peaks."
+/>
+
+<Figure
+  src="/images/blog/guildhall/guildhall-animations-and-timing/dragon-strips.webp"
+  alt="Two strips of six frames each: top, the old dragon with wings in symmetric flapping poses breathing fire in most frames; bottom, the new dragon gliding, banking and beating with its tail following"
+  label="Before (top) / after (bottom)"
+  caption="Before: circling the peaks, flapping. After: uneven acts with glides and banking."
+/>
+
+## Real elapsed time, at any frame rate
+
+The last one is about time itself. When a phone can't hold its display's rate, the frame rate jumps around, and even if every single frame is fine, the motion stutters. My instruction is quoted at the top of `pace.ts`: _rather a steady 30 than a rate jumping between 60, 40 and 30, and quality never drops to buy fps._ So the stage can draw on every second (or fourth) vsync, and Settings → Motion offers Auto, Smooth 30 or Max. How the pacer works is in [part 5](/experiments/guildhall-60fps-performance).
+
+What makes that safe for animation is the rule underneath: **everything runs on real elapsed time.** A hook's `dt` is the real time since the last drawn frame, so nothing moves slower at 30. Stride matching works off metres covered, not frames. The dragon, the boats and the lamps are functions of the clock, not of a frame counter. The check for it is visual too: a camera ease turns exactly **90.0° in one second** at Max and at Smooth 30.
+
+## What I'd tell you to steal
+
+<DecisionLog
+  title="What made motion look right"
+  decisions={[
+    {
+      proposal: 'Describe the motion and accept code that runs',
+      verdict: 'rejected',
+      reasoning:
+        'It always ran. It rarely looked right: whirling legs, backwards shields, a kite of a dragon.',
+    },
+    {
+      proposal:
+        'Measure the physical fact behind the look (a clip’s ground speed, a sword’s reach)',
+      verdict: 'accepted',
+      reasoning: 'Stride matching and DUEL_APART turned taste into one number a test can hold.',
+    },
+    {
+      proposal: 'Make timing a named constant with a reason in its comment',
+      verdict: 'accepted',
+      reasoning:
+        'TOAST_AT, TIPSY_FROM and LIT_RISE are design decisions. Naming them made them reviewable.',
+    },
+    {
+      proposal: 'Trust the grip matrix as the regression test',
+      verdict: 'deferred',
+      reasoning:
+        'It works only from the right camera. The shield hid edge-on for days, until the matrix got a yaw.',
+    },
+    {
+      proposal: 'Run everything on real elapsed time',
+      verdict: 'accepted',
+      reasoning:
+        'Motion reads the same at 30 and at 60, so the frame rate can choose steadiness without changing speed.',
+    },
+  ]}
+/>
+
+<Callout type="tip">
+  When the requirement is 'it looks right', your job is to turn the look into a measurable fact (a
+  ground speed, a distance, an hour) and then point a camera at it from the angle where it can fail.
+</Callout>
+
+## The lesson
+
+AI wrote most of the motion code in Guildhall, and it was good code. But every fix in this post started the same way: someone watched the world and said _that's wrong_, then knew enough about animation, physics or timing to say **exactly** what was wrong. Precise words, a mock or a reference, a number with a reason. Then the model was fast.
+
+"It looks right" is the hardest requirement because nobody can write it down until they have seen it look wrong.
+
+Next in the series, part 5: **performance**, and how Guildhall holds 60 fps for a whole kingdom, even on a phone, without changing a single pixel of the look.
+
+See it for yourself at [guildhall.codestz.dev](https://guildhall.codestz.dev) (try a town at dusk), and the code is on [GitHub](https://github.com/Codestz/guildhall).

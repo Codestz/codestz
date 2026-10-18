@@ -1,0 +1,53 @@
+---
+title: 'opencode-cockpit'
+description: 'Your agent, on instruments. Cockpit adds what OpenCode does not ship with: shells that keep running, subagents you can watch, a pull request in the terminal, and a trail of everything each conversation made.'
+publishedAt: '2026-09-17'
+repo: 'Codestz/opencode-cockpit'
+thumbnail: '/images/blog/opencode-cockpit.png'
+liveUrl: 'https://cockpit.codestz.dev/'
+technologies: ['TypeScript', 'OpenCode', 'TUI', 'PTY', 'Bun', 'npm']
+language: 'TypeScript'
+stars: 7
+forks: 0
+status: 'active'
+featured: true
+---
+
+## Your agent, on instruments
+
+[OpenCode](https://opencode.ai) is a great agent in the terminal. Cockpit gives it instruments: shells that outlive the turn, subagents you can watch, a pull-request style review in the terminal, and a trail of everything each conversation shipped.
+
+<Figure
+  src="/images/blog/opencode-cockpit.png"
+  alt="One OpenCode session with Cockpit: a running shell, subagents at work and a trail of tickets and pull requests in the sidebar"
+  caption="One session with Cockpit: tests run in the background, subagents work in parallel, and the PR lands in Trail under its ticket."
+/>
+
+<StatBlock
+  title="Seven bays"
+  stats={[
+    { value: '7', label: 'Bays, all on by default' },
+    { value: '1 & 2', label: 'OpenCode versions' },
+    { value: '1', label: 'Command to set up' },
+  ]}
+/>
+
+| Bay           | What it gives you                                                                      |
+| ------------- | -------------------------------------------------------------------------------------- |
+| **Trail**     | What every conversation shipped (PRs, tickets, deploys) and which one shipped it       |
+| **Shell**     | Terminals that outlive the turn; the agent waits on a port or a pattern, you watch     |
+| **Subagents** | Every helper in the sidebar with what it is doing now, and its whole run one key away  |
+| **Review**    | Review changes like a pull request: notes on lines, which the agent reads and resolves |
+| **Status**    | How full the context is, where the tokens went, what changed, what it costs            |
+| **Trust**     | Approve the same command three times and Trust answers it for you                      |
+| **Updater**   | Every plugin you have: what runs, what is published, and an update you pick            |
+
+## Set up in one sentence
+
+Install, restart, then type `/cockpit-setup`. The agent reads your settings, asks only what matters, and writes the smallest correct file.
+
+```sh
+opencode plugin add opencode-cockpit@0.11.1
+```
+
+Docs at [cockpit.codestz.dev](https://cockpit.codestz.dev/).

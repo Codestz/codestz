@@ -1,0 +1,384 @@
+---
+title: 'A Math Class, a Mario Clone, and Why Nobody Walks Through Walls in Guildhall'
+description: 'In school I built a Super Mario-style game in Unity for extra credit. That is where I learned colliders, layers, triggers and physics steps. Years later, Guildhall has no Unity and no physics engine, and those same ideas are what kept its townsfolk out of the walls. Part 3 of the Building Guildhall series.'
+publishedAt: '2026-10-18'
+category: 'ai'
+tags:
+  ['guildhall', 'collisions', 'game-dev', 'unity', 'pathfinding', 'threejs', 'building-guildhall']
+featured: true
+type: 'experiment'
+author: 'Esteban Estrada'
+thumbnail: '/images/blog/guildhall-unity-lessons-collisions.png'
+series: 'Building Guildhall'
+seriesOrder: 3
+---
+
+Every year, my math professor at school did something I still think about. He made the assignment fun: you could build a **video game about math** for extra credit.
+
+So I built a Super Mario-style 2D platformer in Unity. You ran and jumped through the level, and when you reached the end of the map, the game asked you math questions. Get one wrong, and the whole level restarted.
+
+I had no idea how to make a game. I learned by watching a ton of tutorial courses, like [Brackeys' "How to make a 2D Game in Unity"](https://www.youtube.com/watch?v=on9nwbZngyw&list=PLPV2KyIb3jR6TFcFuzI2bB7TMNIIBpKMQ) series. That is where I first met words like **Rigidbody, collider, layer, collision matrix, trigger** and **physics step**.
+
+I didn't know it then, but that extra credit was the most useful thing I brought to [Guildhall](https://guildhall.codestz.dev).
+
+## A game with no game engine
+
+Guildhall turns a code repository into a living low-poly world. Folders become villages, the biggest package becomes the capital, and townsfolk and AI agents (as heroes) walk around it all day.
+
+It is a web app. There is no Unity. There is **no physics engine** either. That was a deliberate choice, written down on day one of the collision work:
+
+<Callout type="quote" author="decisions.md, 2026-10-12">
+  One collision layer in world (solid outlines from catalog sizes as placed, one walkable-height
+  function for ground/stairs/decks), read by paths, crowd separation, spots, placement and tests;
+  ?collide=1 debug overlay. No physics engine now; Rapier later only for dynamics.
+</Callout>
+
+People in Guildhall don't fall, bounce or get knocked over. They walk. A full physics engine would have been a heavy answer to a question nobody was asking.
+
+But "no physics engine" does not mean "no physics thinking". Every concept from that school project came back, just in a different shape. And the hard part was exactly the part where AI alone kept going in circles.
+
+## The bug that started it
+
+When the hex world first came alive, it looked great from far away. Up close, my notes were full of things like: people overlapping, people sinking into stairs, a guard standing inside a pot, a hero inside the castle.
+
+The root cause was the same every time. **Each part of the system had its own idea of where solid things were.** The paths had one, the crowd had another, the activity spots had a third, and the tests had their own.
+
+The first version of "solid" was the easy one: a circle round every piece. In Unity terms, a sphere collider on everything.
+
+<Gallery
+  title="One collision truth: before and after"
+  columns={2}
+  images={[
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/castle-before-discs.webp',
+      alt: 'The castle in the Studio with red circles round every piece: big circles round the towers and keep that cut through walls and roads',
+      caption: 'Before: a circle round every piece. The castle is a pile of overlapping discs.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/castle-after-outlines.webp',
+      alt: 'The same castle with tight red outlines that follow each wall, tower and keep, and blue rings round the heroes',
+      caption: "After: each solid is the piece's own outline, turned and scaled as placed.",
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/stairs-before-sinking.webp',
+      alt: 'A hero walking down a flight of stone stairs between two terraces',
+      caption: 'Before: feet sampled the ground, not the stair, so walkers sank into the steps.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/stairs-after-collide.webp',
+      alt: "The collision overlay on a flight of stairs: the stairs' stone cheeks drawn as red outlines and the fences as thin red shapes",
+      caption: 'After: the stair cheeks are solids and the treads are the height feet stand on.',
+    },
+  ]}
+/>
+
+A circle works for a barrel. It does not work for a castle wall, a fence or a long market stall. The circle is either too small (people walk through the corners) or too big (it swallows the road next to it).
+
+So we replaced all of it with **one collision layer**: one list of solids, each a convex outline read off the actual 3D model in the band of height people walk in, plus one function that says how high the ground is at any point (the ground, a stair tread or a bridge deck). Everything reads it: the paths, the crowd, the spots, the placement and the tests. And a debug view (`?collide=1`) draws it on top of the world, which is what you see in those shots.
+
+<Callout type="tip">
+  One source of truth for space. Bugs like "inside a wall" come from two systems disagreeing about
+  where the wall is. In Unity the engine gives you that single truth for free. Without an engine,
+  you have to build it on purpose.
+</Callout>
+
+## Colliders and layers, without the engine
+
+In Unity, a collider has a shape and a layer, and the collision matrix decides which layers care about each other. Guildhall has the same idea in about ten lines:
+
+_packages/world/src/hex/collide.ts and spots.ts (simplified)_
+
+```typescript
+/** What a solid is: its "layer". */
+export type SolidKind = "building" | "wall" | "prop" | "seat" | "trunk" | "blocker"
+
+export interface Solid {
+  kind: SolidKind
+  pts: Float64Array      // a convex outline, seen from above
+  base: number           // the height it stands on
+  soft?: boolean         // only kept clear where there is room
+}
+
+/** What no spot stands in: buildings, walls, towers, fences. */
+export const HARD = (k: SolidKind): boolean => k === "building" || k === "wall"
+
+// a query with a mask, like a Physics.OverlapSphere with a layer mask:
+blocked(x: number, z: number, r: number, kinds?: (k: SolidKind) => boolean): boolean
+```
+
+That `kinds` filter is a collision matrix. A walker brushing a barrel (`prop`) is fine; a walker inside a `wall` is a bug. A person sitting on a bench stands _inside_ a `seat`, by design. A tree only blocks by its trunk, because the crown is above people's heads.
+
+And there is even a layer that ignores walls: when a hero falls, their ghost drifts to the graveyard **through** walls, and the walls test leaves ghosts out on purpose. That is the "this layer doesn't collide with that one" checkbox, written as a rule.
+
+## Colliders as data: blockers on tile prefabs
+
+Every hex tile in Guildhall (a tavern, a farm, an archery range) is a JSON file. Besides its pieces, it carries **spots** (where people sit, work, stand, sleep and talk) and **blockers** (round areas nobody walks through). The blockers are colliders you can author by hand.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-unity-lessons-collisions/composer-archery-range.webp"
+  alt="The tile composer showing an archery range: a red-roofed range house, a plank lane, three targets on hay bales, and red rings for blockers and orange rings for work spots"
+  label="Tile composer, live"
+  caption="The archery range in the Studio's tile composer: 26 pieces, 5 spots, 17 blockers. Red rings are blockers, orange are work spots."
+/>
+
+_data/tiles/tavern.json (shortened)_
+
+```json
+{
+  "pieces": [{ "piece": "kaykit-hexagon/building-tavern-blue", "scale": 0.5, "x": 0, "z": -0.45 }],
+  "spots": [
+    {
+      "kind": "sit",
+      "clip": "Sit_Chair_Idle",
+      "prop": "kaykit-adventurers/mug-full",
+      "hours": [17, 1],
+      "x": -2.15,
+      "z": 1.7,
+      "facing": 1.768
+    }
+  ],
+  "blockers": [
+    { "x": 0, "z": -0.45, "r": 1.599 },
+    { "x": 2.05, "z": 0.75, "r": 0.331 }
+  ]
+}
+```
+
+That tavern spot is someone sitting with a mug from 5 pm to 1 am. Across all the tile prefabs there are 234 spots and 474 blockers today, and in the world each blocker becomes a solid in the same collision layer as the walls.
+
+## Rigidbodies became a walk graph
+
+In my Mario clone, the character moved because a Rigidbody pushed it and the colliders stopped it. Guildhall flips that. Nobody is pushed. **People walk along ways that were already checked to be clear.**
+
+There is one walk graph: nodes at the centre of every road tile, at every door, on bridges and docks, each with a height. The shortest route between two places is an A\* search over it. Then `clearWay` takes the route and bends it round any solid it would cut, by the corners on the side it already passes. When there is no simple way round, an A\* on a fine grid (10 to 20 cm cells) finds one.
+
+<ProcessFlow
+  title="How a townsperson gets from home to work"
+  steps={[
+    {
+      title: 'Route on the walk graph',
+      description: 'A* over road, door, bridge and path nodes, each with a height.',
+    },
+    {
+      title: 'Clear the way',
+      description:
+        'clearWay bends each segment round the solids it would cut; an A* on a fine grid handles tight spots.',
+    },
+    {
+      title: 'Plan the day',
+      description:
+        'Each person gets a loop of walks and stays: home, work, the square, the tavern, home.',
+    },
+    {
+      title: 'Sample it by time',
+      description: 'The renderer asks where that person is at time t. No step, no integration.',
+    },
+    {
+      title: 'Keep personal space',
+      description:
+        'Only the crowd runs per frame: rounds pushed apart, walkers queue, nobody pushed into a wall.',
+    },
+  ]}
+/>
+
+## The physics step, or why there almost isn't one
+
+Unity taught me the difference between `Update` (once per rendered frame) and `FixedUpdate` (the physics step, at a fixed rate). Mixing them up is how characters jitter or tunnel through walls at low frame rates.
+
+Guildhall avoids most of that problem by not simulating movement at all. A person's day is **planned once**, when the world is built, as a list of steps. Each frame, the renderer just asks: where is this person at time `t`?
+
+_packages/world/src/hex/life.ts (simplified)_
+
+```typescript
+/** Where someone is at time t in a loop of period (24 for a day). */
+export function lifePose(steps: readonly LifeStep[], t: number, period: number): LifePose {
+  const h = ((t % period) + period) % period;
+  // binary search for the step that covers h, then place them on it
+}
+```
+
+It is deterministic. It doesn't care if you run at 30 or 120 fps, and you can jump the clock to 3 am and everyone is exactly where they should be. That is also what makes it testable without a browser.
+
+Even the "triggers" are planned. In Unity a door would open in `OnTriggerEnter`. In Guildhall, `doorPasses` reads a person's plan and lists every time they go in or out, so a door knows ahead of time to swing open a little before someone reaches it and shut behind them.
+
+The one thing that does run per frame is the crowd's personal space: everyone has a round as wide as they are drawn, and overlapping rounds are pushed apart a little each frame, with the push limited to a brisk side-step so nobody jumps. That is the closest thing Guildhall has to a physics step. And it had its own bug, which I'll get to.
+
+## Measure the bug, then fix it
+
+Here is where the experience mattered more than the prompting.
+
+"People overlap" is not a bug report an AI can fix reliably. I tried. The models would happily tweak a radius, or add a special case for the castle, and report success. Then the next seed broke somewhere else. What finally worked was the boring engineering move: **turn the complaint into a number first**.
+
+A headless run put 160 people on an island for 600 seconds at 30 fps and counted everything that was wrong:
+
+<StatBlock
+  title="The crowd, 600 s headless run: before → after"
+  stats={[
+    { value: '15.7 → 0.06', label: 'People inside a wall, per frame' },
+    { value: '15,415 → 0', label: 'Person-frames with feet under a stair tread' },
+    { value: '3.5% → 0%', label: 'Frames where an agent overlapped someone' },
+  ]}
+/>
+
+That run also found a bug I never would have guessed: two systems were each adding their own "keep to the right" offset, and they cancelled out. Duplicated responsibility is a bug class of its own.
+
+## The walls sweep: a test that must say zero
+
+Then a new complaint, in my own words in the decisions log: _"characters and townsfolk sometimes walk through walls to take a shorter path, visible in the castle."_
+
+The fix was a test I call the **walls sweep**. It takes every townsperson's whole day and every hero's walks in every demo story, samples each way every 10 cm, and checks it against the hard solids (buildings, walls, towers, fences, stair cheeks, bridge rails). It counts cuts per source, so you know _what_ made the bad bit of way: a walk-graph edge, a detour, a spot approach, a hero route.
+
+_packages/sim/test/walls.test.ts (simplified)_
+
+```typescript
+describe('nobody walks through a wall', () => {
+  for (const [files, seeds] of [
+    [4000, [1, 2, 3, 4, 5, 6]],
+    [12000, [1, 3, 6]],
+  ])
+    for (const seed of seeds)
+      test(`seed ${seed}, ${files} files: no bit of anyone's way cuts into a wall`, () => {
+        const { table, cuts } = sweepIsland({ seed, files });
+        expect(cuts).toEqual([]);
+        for (const s of SOURCES) expect([s, table[s].cuts]).toEqual([s, 0]);
+      });
+});
+```
+
+The first fix got the castle to zero crossings and dropped the rest from about 580 to about 89. That was "good enough" by any reasonable budget, and I almost took it. Instead, a second pass chased the last pockets one by one (an archery range, the tavern seats, a beer garden's fence, the graveyard) until **every source was 0 on all 9 islands**, and the runtime crowd was 0 on the 3 islands we checked.
+
+<Gallery
+  title="Walls sweep: the last pockets"
+  columns={2}
+  images={[
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/butts-before.webp',
+      alt: 'An archery range in autumn; an archer leaving the range is hidden inside the range house',
+      caption: 'Before: an archer leaving the range walks inside the range house.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/butts-after.webp',
+      alt: 'The same archery range at the same moment; the archer in green stands on the planks outside the house',
+      caption: 'After: same moment, the archer goes round on the planks.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/garden-before.webp',
+      alt: 'A beer garden with the collision overlay; a lamplighter stands on the garden fence line',
+      caption: "Before: a lamplighter standing on the beer garden's fence.",
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/garden-after.webp',
+      alt: 'The same beer garden; the lamplighter is on the road past the end of the fence',
+      caption: "After: gone round by the fence's end.",
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/graveyard-before.webp',
+      alt: 'A fenced graveyard with the collision overlay; a hero stands against the fence on the right side, where there is no gate',
+      caption: 'Before: a Warden leaving the graveyard where there is no gate.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/graveyard-after.webp',
+      alt: 'The same graveyard; the hero is outside on the grass, having left by the arch gate',
+      caption: 'After: out by the gate, then down the road.',
+    },
+  ]}
+/>
+
+Each pair is the same island, the same seed and the same clock time, before and after. The test number told me _that_ it was fixed. The shots told me it _looked_ fixed.
+
+## Door thresholds: where a collider meets a doorway
+
+Doors are the trickiest place for any collision system. A door is, by definition, a hole in a solid. In Unity you would cut the collider or put a trigger there. In Guildhall, a walk's own ends are allowed to stand in what they belong to: the last metre of a walk into a house may cross its own house, and nothing else.
+
+Heroes resting indoors needed one more rule. They stop at a **threshold**: walking out of the doorway the way it faces, the first point where a body stands at least 30 cm clear of every wall and building. Before that, a hero heading home could stop half inside a wall. After, they stop on the step, facing in, and fade.
+
+## Duel spacing: 1.6 metres
+
+The last one is my favourite, because it's not about walls at all.
+
+Knights in the training arena spar in pairs. They used to stand so close their helmets touched. I called them "the kissing knights". In Unity I'd have given each one a capsule collider and let the engine keep them apart. Here, it's a constant, used by every system that squares two fighters up:
+
+_packages/world/src/hex/drills.ts_
+
+```typescript
+/** Metres between two duellists' centres at rest: blows land at reach and the helmets never touch. */
+export const DUEL_APART = 1.6;
+/** Metres between them at the nearest, stepped in for the bout's blows. */
+export const DUEL_CLOSEST = 1.5;
+```
+
+Each side steps in 5 cm for the blows and back out after. A test checks every paired drill on every tile: 1.6 m at rest, never nearer than 1.5 m, facing each other. Another checks that a hero's sparring spot keeps 1.6 m from every other spot.
+
+<Gallery
+  title="The arena duel"
+  columns={2}
+  images={[
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/duel-before.webp',
+      alt: 'Four knights in a fenced sand arena standing helmet to helmet in a tight cluster',
+      caption: 'Before: two duels, helmet to helmet.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-unity-lessons-collisions/duel-after.webp',
+      alt: 'The same arena with two pairs of knights standing apart, swords at reach and a shield raised',
+      caption: 'After: 1.6 m apart, blows land at reach, the shield faces the attacker.',
+    },
+  ]}
+/>
+
+## Unity concept → Guildhall equivalent
+
+| Unity                        | Guildhall                                                | Where                      |
+| ---------------------------- | -------------------------------------------------------- | -------------------------- |
+| Collider                     | A convex outline per placed piece, read off its model    | `world/src/hex/collide.ts` |
+| Hand-placed collider         | Blockers in a tile prefab                                | `data/tiles/*.json`        |
+| Layers + collision matrix    | `SolidKind` and filters like `HARD`                      | `collide.ts`, `spots.ts`   |
+| Ground / terrain collider    | One walkable-height function (ground, stair tread, deck) | `collide.ts`               |
+| Rigidbody movement           | Ways planned on the walk graph, sampled by time          | `walk.ts`, `life.ts`       |
+| NavMesh + agent              | Walk graph A\* + `clearWay` detours                      | `walk.ts`                  |
+| `OnTriggerEnter` on a door   | `doorPasses`, planned from the day                       | `life.ts`                  |
+| `FixedUpdate`                | Almost nothing: only crowd separation runs per frame     | `studio/hexworld/space.ts` |
+| Physics debugger / gizmos    | `?collide=1` overlay                                     | Studio                     |
+| "It looks fine in play mode" | The walls sweep, which must say 0                        | `sim/test/walls.test.ts`   |
+
+<DecisionLog
+  title="Collision decisions"
+  decisions={[
+    {
+      proposal: 'Add a physics engine for movement and collisions',
+      verdict: 'rejected',
+      reasoning:
+        'People walk; nobody falls or bounces. Rapier stays an option only for real dynamics later.',
+    },
+    {
+      proposal: 'One collision layer that paths, crowd, spots, placement and tests all read',
+      verdict: 'accepted',
+      reasoning:
+        'Every "inside a wall" bug came from two systems disagreeing about where the wall was.',
+    },
+    {
+      proposal:
+        'Accept the ~89 shallow wall brushes left after the first fix, under a per-island budget',
+      verdict: 'rejected',
+      reasoning: 'Chased to 0 on every source. A budget hides the pockets someone will notice.',
+    },
+    {
+      proposal: 'A fixed duel distance shared by every source',
+      verdict: 'accepted',
+      reasoning:
+        'DUEL_APART = 1.6 m ended the kissing knights everywhere at once, not just in the arena.',
+    },
+  ]}
+/>
+
+## What the school project actually taught me
+
+Not Unity itself.
+
+It taught me the **vocabulary**. When the world went wrong, I could name what was wrong: this is a collider shape problem, this is a layer problem, this is a step problem. And when you can name it, you can ask an AI for exactly the right thing, show it the shot, and give it a test that has to say zero.
+
+The models I tried on these bugs were fast and confident. Without that vocabulary, I would have accepted their "fixed" every time. AI is an amplifier. What it amplified here was a math assignment from school, a YouTube playlist, and the habit of looking at the screen until the thing really works.
+
+Next in the series: **animations and timing**, and why "it looks right" turned out to be the hardest requirement of all.
+
+You can walk around the world at [guildhall.codestz.dev](https://guildhall.codestz.dev) (try the tile composer in the Studio), and the code is on [GitHub](https://github.com/Codestz/guildhall).

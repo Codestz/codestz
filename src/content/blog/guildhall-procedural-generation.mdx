@@ -1,0 +1,398 @@
+---
+title: 'Procedural Generation: Where the Models Kept Failing, and Stacked Hexes Did Not'
+description: 'Map generation was the hardest part of Guildhall. It was restarted twice, every frontier model I tried produced the same three mistakes, and the fix was not a better prompt. It was a few engineering ideas: hexagons, relief from stacked layers, sites before roads before nature, density rules, and growth that never moves old land. Part 2 of the Building Guildhall series.'
+publishedAt: '2026-10-18'
+category: 'ai'
+tags:
+  [
+    'guildhall',
+    'building-guildhall',
+    'procedural-generation',
+    'threejs',
+    'ai-workflow',
+    'claude-code',
+  ]
+featured: true
+type: 'experiment'
+author: 'Esteban Estrada'
+thumbnail: '/images/blog/guildhall-procedural-generation.png'
+series: 'Building Guildhall'
+seriesOrder: 2
+---
+
+[Guildhall](https://guildhall.codestz.dev) turns a code repository into a living low-poly island. In [part 1](/experiments/guildhall-studio-give-ai-eyes) I wrote about the Studio, the tools that let me and the AI _see_ the world before shipping it.
+
+This part is about the world itself: the map generator. It was the hardest part of the project, and the place where AI helped me the least.
+
+**Prompting got me a map in minutes. Getting a map worth looking at took experience, precision and a lot of real engineering.**
+
+## Three islands that were wrong
+
+I restarted map generation twice. Each failed attempt failed in a different way, and the same three mistakes kept coming back, whichever model was writing the code.
+
+### Mistake 1: mixing styles the assets don't support
+
+Guildhall is built from KayKit packs: chunky, bevelled, hand-modelled low-poly pieces. Hex tiles, houses, trees. The kit has no mountains.
+
+In V1 I asked for _real_ mountains: tall massifs, ridges, switchback paths. The model did what models do. It generated them, as a procedural mesh, and dropped that mesh among the hex lowlands.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-procedural-generation/v1-mountains-island.webp"
+  alt="Guildhall V1: a hex island with grey, faceted procedural mountains rising between green hex lowlands"
+  label="V1"
+  caption="V1 with generated mountains. From far away it almost works."
+/>
+
+Up close, it didn't.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-procedural-generation/v1-mountains-close.webp"
+  alt="Close-up of V1 mountains: flat-shaded grey triangles and dark box faces next to clean green hex tiles and a waterfall"
+  label="V1, close up"
+  caption="Two visual languages in one frame: faceted triangles and dark boxes next to KayKit's bevelled tiles."
+/>
+
+My note at the time: the mountains looked _"10x weird quality"_ next to everything else. The diagnosis was simple once I said it out loud: **a procedural flat-shaded mesh is not KayKit's hand-modelled language.** No amount of shading tweaks fixes a style mismatch. We went through several relief styles before landing on the rule that finally worked: stop chasing realism and keep the low-poly terrace language all the way up.
+
+### Mistake 2: generic islands with nothing on them
+
+For V2 the plan said: flat plane first, terrain later. Relief was marked optional, to be dropped if it threatened quality. So the mountains went away completely.
+
+I didn't like that. And the island that came back was worse than the mountains.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-procedural-generation/v2-smooth-flat.webp"
+  alt="The V2 smooth-terrain island: a flat green blob with a small town in the middle, thin blue rivers and large empty grass areas"
+  label="V2, smooth attempt"
+  caption="75 buildings and 11,924 pieces, and it still reads as empty green."
+/>
+
+When I wrote down how that generator worked, the diagnosis was one sentence: **the generator was feature-first (put N things somewhere), and the land between the features belonged to no stage.** Farms only existed where a road passed. Nature filled the leftovers as meadow. From above, meadow is just green.
+
+### Mistake 3: saturation
+
+The first hex island fixed the emptiness by overcorrecting. Ask a model for "more nature" and you get nature everywhere.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-procedural-generation/hex-first-saturated.webp"
+  alt="An early hex island: almost every tile covered in small bright green trees, with a few villages lost in the green"
+  label="First hex island"
+  caption="An early hex island. The world is full, but it reads as green noise: villages drown and nothing has a silhouette."
+/>
+
+Low-poly hex reads badly when crowded. That became a written rule in the restart: **spacing and clear silhouettes are rules, not afterthoughts.**
+
+## What the models could not do
+
+I tried this with every frontier model I had access to: Kimi K3, Opus, Fable, DeepSeek. They all wrote working generators. Tests passed. And they all made the same three mistakes, because every one of them is a **taste and judgement** problem, not a coding problem.
+
+A model doesn't know that KayKit has no mountains unless you tell it. It doesn't know "empty" from "calm" or "full" from "noisy". It optimises what you described, and "an island with mountains, towns and forests" describes all three bad islands above.
+
+What finally worked was me doing the part I'm actually good at: spending time on the technical detail, showing exactly what I wanted with mocks and side-by-side examples, and being precise. Then Opus and Sonnet were excellent at building it.
+
+## Why hexagons
+
+On paper, hex had been rejected. The early V2 decision said it _"doesn't scale to mountains, lakes and slopes"_. A day later, after putting V2 next to V1 and seeing it look worse, we did a one-hour spike on a hex grid. It looked right immediately. We restarted on hexagons the same afternoon, with one condition:
+
+**A procedural technique built natively on the hex grid, not a hex skin over the old generator.**
+
+That matters more than it sounds. On axial hex coordinates, placement, adjacency and connection become grid math. A tile has exactly six neighbours. A road is a path of tiles. A river is a tile draining into its lowest neighbour. And every KayKit building already sits on one hex tile, so the assets and the grid speak the same language.
+
+## Relief from stacked layers
+
+So how do you get mountains back without a mountain mesh? I asked a simple question: **why not build relief from whole layers of hex tiles, stacked?**
+
+Each land tile gets a height in whole levels, never a smooth value. Height rises with the distance from the coast, plus two hill massifs off-centre whose tiles climb in steps, plus bluffs where the coast stands high:
+
+```ts
+// simplified from packages/world/src/hex/island.ts
+const D = coast[i]; // steps from the sea
+const bump = fbm(seed + 23, x / 9, y / 9, 2) > 0.25 ? 1 : 0;
+const low = Math.min(2, Math.floor(D / 3)) + bump;
+const rough = 0.75 + 0.5 * ridged(seed + 31, x / 8, y / 8, 2);
+// hillAt: the hill massifs' pull here, 0 to 1
+const hill = Math.round(hillAt(i) * spec.hills * rough * Math.min(1, D / 2));
+level[i] = Math.max(D <= 1 ? 0 : 1, Math.min(low, D)) + hill + bluff;
+```
+
+The ground mesh then draws a wall only where a tile stands higher than its neighbour, a terrace step or a cliff. Every wall is shaded by its height in the world, not by its own top and foot, with a lighter band every 0.74 m, so the walls line up across the island like rock strata.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-procedural-generation/hex-stepped-relief.webp"
+  alt="Stepped hex terraces of rock with boulders on top, a mine and red-roofed houses in the foreground, a river on the left"
+  label="Relief from layers"
+  caption="No mountain mesh anywhere. Just hex tiles at different whole levels, with strata walls between them. It reads as hills, and it's the same visual language as the houses."
+/>
+
+Stepped hex layers read as mountains. And because heights are whole levels, the walkable rules became simple too: a road that changes level gets stairs or a ramp.
+
+## The order: sites, then roads, then nature
+
+The second big idea fixed both "generic" and "saturated" at once. The pipeline has a fixed order, and **the things that always exist go first.**
+
+<ProcessFlow
+  title="How a Guildhall island is generated"
+  steps={[
+    {
+      title: '1. Land',
+      description:
+        'Grow the island from its centre to the size the repo asks for. Coast, height in whole levels, the hill massifs.',
+    },
+    {
+      title: '2. Sites',
+      description:
+        'Reserve the town core and the castle site: dry, level, inland, picked from land every bigger island also has.',
+    },
+    {
+      title: '3. Water',
+      description:
+        'Every tile drains to its lowest neighbour. Rivers form where enough rain gathers and run round the reserved sites. Every map ships a nature lake.',
+    },
+    {
+      title: '4. Places',
+      description:
+        'Score every tile for each kind of place (town, harbour, farm village, fishing village, mining camp...) and take the best ones in order.',
+    },
+    {
+      title: '5. Roads',
+      description:
+        'A spanning tree plus one loop, each road the cheapest tile path; stairs where no gentle way exists.',
+    },
+    {
+      title: '6. Jobs',
+      description:
+        'Every tile gets a use: square, street, building, yard, field. Then landmarks in the open country, so nothing is bare.',
+    },
+    {
+      title: '7. Nature',
+      description: 'Trees, bushes, rocks and flowers last, sized and thinned by a chosen preset.',
+    },
+  ]}
+/>
+
+Sites first sounds obvious. It wasn't, and I learned it the hard way.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-procedural-generation/hexmap-knobs.webp"
+  alt="The Studio hex map: a 2D hex island with labelled places and a panel of sliders set to coast shape 2, hill levels 0 and rivers 2.5"
+  label="The knobs that broke it"
+  caption="Coast 2, hills 0, rivers 2.5. With exactly these knobs, the castle came out crossed by rivers, pieces colliding, no way in."
+/>
+
+I was playing with the hex map's knobs and opened that island in 3D. The castle had rivers running through it and no gate you could reach. Every part of the system had been correct on its own. **The castle had simply been stamped where the water already was.**
+
+The fix was a change in the model, not a patch: big places are composed for a site instead of stamped on a tile. A site is a connected set of dry tiles, levelled, that a road reaches; water may border it, never lie inside it. The castle's walls follow the site's real outline, the gate faces the road, the keep stands farthest from the gate, and a river on the edge becomes a moat.
+
+And the town core and the castle site are reserved **before the rivers are routed**, so the water flows round them.
+
+## Density rules instead of "more"
+
+Saturation and emptiness are the same bug seen from two sides: nobody owns density. So density became explicit data, per kind of place:
+
+```ts
+// simplified from packages/world/src/hex/zones.ts
+const PLAN = {
+  town: { per1k: 62, min: 30, density: 0.8 },
+  harbour: { per1k: 9, min: 6, density: 0.55 },
+  farm: { per1k: 10, min: 6, density: 0.32 },
+  // ...
+};
+
+// a building fronts a street; never a solid block
+const cap = z.kind === 'town' ? 3 : 2; // at most this many built neighbours
+const roll = (salt: number) => hash2(seed + salt, i, zi);
+if (byRoad && built <= cap && roll(21) < P.density + 0.25) use[i] = U.building;
+else if (!byRoad && built < cap && roll(23) < P.density * 0.45) use[i] = U.building;
+else use[i] = U.yard;
+```
+
+Places scale with the island (so many per thousand land tiles), every building fronts a street, and no building ever becomes part of a solid block. Then the countryside gets its own pass, so every tile has a job and nothing is left as bare green.
+
+Nature was decided the way part 1 describes: on a board, not in a document.
+
+<Figure
+  src="/images/blog/guildhall/guildhall-procedural-generation/nature-presets-abc.webp"
+  alt="Three versions of the same countryside side by side: A today, B with trees x1.3 and woods x0.8, C with trees x1.6, woods x0.6 and wild x1.15"
+  label="Nature presets A / B / C"
+  caption="Same seed, three presets. I picked C with smaller ground cover: trees ×1.6, woods ×0.6, grass and flowers ×0.6."
+/>
+
+The surprising lesson: **bigger trees made the world read better _and_ cost less, because the woods were thinned at the same time.** Fewer, bigger trees give silhouettes. Many small trees give noise.
+
+## Deterministic, and growing without moving
+
+The island has to grow with the repo. A bigger repo means a bigger island, and the history replay shows it growing over the years. That gives two hard requirements.
+
+**Deterministic.** Same seed and spec, same island, on every machine. Every random draw is a hash of the seed and a salt, never a shared random stream, so changing how farms are placed doesn't reshuffle the streets.
+
+**Stable growth.** If the island just scaled its shape with size, every commit would move the coast. Instead, the island grows outward from its centre in one fixed, seed-determined order, the most land-like tile on its edge first:
+
+```ts
+// simplified from packages/world/src/hex/island.ts
+export const landTiles = (files: number) =>
+  Math.min(2800, Math.round(2 * (40 + 13 * Math.sqrt(files))));
+
+// grow from the centre, the most land-like tile on the edge first:
+// an island of n tiles is the first n tiles of every bigger one
+push(landness[origin], origin);
+while (heap.length && n < target) {
+  const i = pop();
+  kind[i] = GRASS;
+  rank[i] = n++;
+  for (const j of grid.neighbours(i))
+    if (!grown[j]) {
+      grown[j] = 1;
+      push(landness[j], j);
+    }
+}
+```
+
+The grid is one fixed size for every island, so coordinates never shift. A test checks that every land tile of a smaller island is still land in a bigger one. Here is the same seed at four repo sizes, same camera:
+
+<Gallery
+  title="Seed 7, same camera, growing with the repo"
+  columns={2}
+  images={[
+    {
+      src: '/images/blog/guildhall/guildhall-procedural-generation/growth-500-files.webp',
+      alt: 'Island VII grown for a repo of 500 files: 662 land tiles, a small island with a lake and a castle in the middle',
+      caption: '500 files: 662 land tiles.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-procedural-generation/growth-1500-files.webp',
+      alt: 'Island VII grown for 1,500 files: 1,091 land tiles, the same lake and castle with new land around them',
+      caption: '1,500 files: 1,091 land tiles.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-procedural-generation/growth-4000-files.webp',
+      alt: 'Island VII grown for 4,000 files: 1,731 land tiles reaching the edges of the frame',
+      caption: '4,000 files: 1,731 land tiles.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-procedural-generation/growth-12000-files.webp',
+      alt: 'Island VII grown for 12,000 files: 2,809 land tiles filling the frame, the lake and castle still in the same spot',
+      caption: '12,000 files: 2,809 land tiles. The lake and the castle never moved.',
+    },
+  ]}
+/>
+
+The sites use the same trick: they are picked among the first 330 tiles of the growth order, the land every island of that size or bigger has. So the castle and the town square stay put while the coast moves outward. I'll be honest about the limit, too: villages and roads are re-planned as the island grows, so a few of them do shift. The land, the lake, the castle and the town core don't.
+
+## Fuzz the knobs, not the examples
+
+A procedural world doesn't fail on seed 1. It fails in combinations you never imagined, like coast 2, hills 0 and rivers 2.5. So the castle bug became a test that sweeps combinations instead of checking examples:
+
+<StatBlock
+  title="The site sweep"
+  stats={[
+    { value: '20', label: 'Seeds' },
+    { value: '9', label: 'Knob sets at the extremes' },
+    { value: '4', label: 'Repo sizes, 500 to 12,000 files' },
+    { value: '720', label: 'Islands per full sweep' },
+  ]}
+/>
+
+Each island is checked for invariants: no building over water, no overlapping buildings, no wall ending in nothing, every place and every door reachable by road, the castle's keep reachable from its gate. When the sites were reserved before the water, violations across those 720 islands went from about 2,000 per class to **zero**.
+
+## Regions, so a big island isn't one big green
+
+Once the island was full and readable, it was still one colour. The last layer is regions: two to four gentle stretches of country per island, picked by the seed and the land, blended over a few tiles, and stable under growth like everything else.
+
+<Gallery
+  title="Regions"
+  columns={3}
+  images={[
+    {
+      src: '/images/blog/guildhall/guildhall-procedural-generation/region-highlands.webp',
+      alt: 'Highlands region: grey stepped rock with snow caps, pines and a lake',
+      caption: 'Highlands: rock, pines, snow on the peaks.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-procedural-generation/region-dry.webp',
+      alt: 'Dry region: straw and ochre ground with a harbour and sparse shrubs',
+      caption: 'Dry south: straw and ochre.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-procedural-generation/region-marsh.webp',
+      alt: 'Marsh region: a lily pond surrounded by pale green trees',
+      caption: 'Marsh by the lake.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-procedural-generation/region-autumn.webp',
+      alt: 'Autumn region: orange and red trees around fields and houses',
+      caption: 'An autumn wood.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-procedural-generation/region-meadow.webp',
+      alt: 'Meadow region: flower-coloured ground hexes among fields and houses',
+      caption: 'Meadow in flower.',
+    },
+    {
+      src: '/images/blog/guildhall/guildhall-procedural-generation/region-island.webp',
+      alt: 'A whole island from above: green land with a grey and snowy highland near the middle and orange autumn woods in the south',
+      caption: 'Seed 1 from above: a highland and an autumn wood, the rest KayKit green.',
+    },
+  ]}
+/>
+
+On top of that, seasons follow the repo's own dates, so the same land can be spring green or under snow. Same tiles, re-tinted in KayKit's own palette ramps, so it stays in the house style.
+
+## The anti-patterns, in one place
+
+<DecisionLog
+  title="What I'd tell anyone building a procedural world with AI"
+  decisions={[
+    {
+      proposal:
+        'Generate realistic features the asset kit does not have (procedural mountain meshes next to KayKit tiles)',
+      verdict: 'rejected',
+      reasoning:
+        'Two visual languages in one frame. Build every feature from the kit you have: relief from stacked hex levels.',
+    },
+    {
+      proposal: 'Place N features somewhere and let nature fill the leftovers',
+      verdict: 'rejected',
+      reasoning:
+        'Generic islands. The land between the features belongs to no stage. Every tile needs a job.',
+    },
+    {
+      proposal: 'Fix emptiness with more nature',
+      verdict: 'rejected',
+      reasoning:
+        'Saturation. Density is explicit data per place, and nature is chosen from a board: fewer, bigger trees.',
+    },
+    {
+      proposal: 'Reserve the sites that always exist before water and roads',
+      verdict: 'accepted',
+      reasoning:
+        'The castle, the town core and the lake appear in every combination, so they get the most design.',
+    },
+    {
+      proposal: 'Grow the island in one fixed, seeded order',
+      verdict: 'accepted',
+      reasoning: 'A bigger repo adds land at the edge. Nothing that matters moves.',
+    },
+    {
+      proposal: 'Test invariants across seeds, knob extremes and sizes',
+      verdict: 'accepted',
+      reasoning: 'Examples hide bugs. A 720-island sweep finds them.',
+    },
+  ]}
+/>
+
+<Figure
+  src="/images/blog/guildhall/guildhall-procedural-generation/today-town-close.webp"
+  alt="Guildhall today: a hex town at 11:00 with stepped terraces, roads with stairs, a castle on a rise, rivers with bridges, fields and orange autumn trees"
+  label="Today"
+  caption="Seed 7 at 1,500 files, today. Terraces with stairs, a castle on its reserved site, rivers that run round it, buildings that front streets, and space between things."
+/>
+
+## The lesson
+
+Every model I tried could write a procedural generator. None of them could tell me the mountains were in the wrong style, the island was empty, or the forest was noise. Those were judgement calls. The fixes that mattered were engineering ideas that came from looking at the screen and naming the root cause: hexes as the native grid, relief from layers, sites first, density as data, growth in a fixed order, invariants over examples.
+
+**AI amplified those ideas into thousands of lines of good code. It didn't have them.**
+
+Next in the series: **collisions**. A castle that stands on dry ground is half the job; the other half is townsfolk who never walk through its walls. The ideas behind that came from a Super Mario clone I built in Unity for a math class.
+
+Generate your own island at [guildhall.codestz.dev](https://guildhall.codestz.dev) (try `/town/7?files=12000`), and the generator lives in `packages/world/src/hex` on [GitHub](https://github.com/Codestz/guildhall).

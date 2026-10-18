@@ -13,6 +13,9 @@ import {
   ScopeBlock,
   DecisionLog,
   MilestoneCard,
+  Figure,
+  Video,
+  Gallery,
 } from '@/components/mdx';
 import { Mermaid } from '@/components/mdx/Mermaid';
 
@@ -38,6 +41,9 @@ export const mdxComponents: MDXComponents = {
   ScopeBlock,
   DecisionLog,
   MilestoneCard,
+  Figure,
+  Video,
+  Gallery,
   // Headings
   h1: ({ children }) => (
     <h1 className="mb-4 sm:mb-6 mt-6 sm:mt-8 font-heading text-3xl sm:text-4xl font-bold uppercase text-foreground">
