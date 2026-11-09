@@ -1,6 +1,6 @@
 <div align="center">
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=32&duration=3000&pause=1000&color=7C3AED&center=true&vCenter=true&random=false&width=700&height=70&lines=Hey%2C+I'm+Esteban+Estrada;Senior+Software+Engineer+%40+Recurly;Building+tools+for+AI+agents;Rust+%7C+TypeScript+%7C+Go)](https://codestz.dev)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=32&duration=3100&pause=1000&color=7C3AED&center=true&vCenter=true&random=false&width=700&height=70&lines=Hey%2C+I'm+Esteban+Estrada;Senior+Software+Engineer+%40+Recurly;Building+tools+for+AI+agents;Rust+%7C+TypeScript+%7C+Go)](https://codestz.dev)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./public/stats/card-dark.svg"/>
@@ -142,6 +142,7 @@ I build developer tools that make AI agents smarter.
 > I write about AI-driven development, MCP integrations, and developer tooling at **[codestz.dev](https://codestz.dev)**
 
 <!-- BLOG-POST-LIST:START -->
+
 - [Invisible Wins: 60 FPS for a Whole Kingdom, Even on a Phone](https://codestz.dev/experiments/guildhall-60fps-performance) — Oct 2026 · 20 min
 - [Feet That Don't Skate: Why 'It Looks Right' Is the Hardest Requirement](https://codestz.dev/experiments/guildhall-animations-and-timing) — Oct 2026 · 17 min
 - [Procedural Generation: Where the Models Kept Failing, and Stacked Hexes Did Not](https://codestz.dev/experiments/guildhall-procedural-generation) — Oct 2026 · 16 min
