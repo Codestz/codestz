@@ -142,7 +142,6 @@ I build developer tools that make AI agents smarter.
 > I write about AI-driven development, MCP integrations, and developer tooling at **[codestz.dev](https://codestz.dev)**
 
 <!-- BLOG-POST-LIST:START -->
-
 - [Invisible Wins: 60 FPS for a Whole Kingdom, Even on a Phone](https://codestz.dev/experiments/guildhall-60fps-performance) — Oct 2026 · 20 min
 - [Feet That Don't Skate: Why 'It Looks Right' Is the Hardest Requirement](https://codestz.dev/experiments/guildhall-animations-and-timing) — Oct 2026 · 17 min
 - [Procedural Generation: Where the Models Kept Failing, and Stacked Hexes Did Not](https://codestz.dev/experiments/guildhall-procedural-generation) — Oct 2026 · 16 min
